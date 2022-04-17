@@ -50,9 +50,20 @@ Polynomial& Polynomial::operator=(Polynomial && other)
 
 Polynomial& Polynomial::operator=(std::string func_str)
 {
-	std::string str="";
+	// example: 1 + x_3 + 2*x_5 + x_2*x_3 + p*x_7
+	std::vector<std::string> tokens;
+	str::string token = "";
 	for(int i=0; i<func_str.length(); ++i){
+		char c = str[i];
+		if(c == '+' || c == '-'){
+			for(int j=0; j<token.length(); ++j){
 
+			}
+			token = "";
+		}
+		else{
+			token += c;
+		}
 	}
 }
 
@@ -97,7 +108,7 @@ Polynomial Polynomial::operator*(Polynomial const& pa, Polynomial const& pb)
 
 Polynomial& operator=(std::string func_str)
 {
-	
+
 }
 
 size_t const& Polynomial::term(size_t var1_idx, size_t var2_idx) const
