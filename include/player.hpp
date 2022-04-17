@@ -4,18 +4,20 @@
 
 class Player {
 public:
-	Player();
-	Player(Player const&);
-	Player(Player &&);
-	~Player();
+	Player() = delete;
+	Player(VarsStrust const * const vs);
+	Player(Player const& other);
+	Player(Player && other);
+	~Player() = default;
+	Player& operator=(Player const& other);
+	Player& operator=(Player && other);
 
-	Player& operator=(Player const&);
-	Player& operator=(Player &&);
-
+	Player& operator=(std::string const& func);
 	void substitute(std::vector<Polynomial>);
 	void substitute(float);
 private:
-	size_t var_idx_;
 	Polynomial sol_;
 	Polynomial func_;
+	Polynomial first_deriv_;
+	float second_deriv_;
 };
