@@ -1,7 +1,7 @@
 #include "player.hpp"
 
-Player::Player(VarsStrust const * const vs)
-	:sol_(vs), func_(vs), first_deriv_(vs)
+Player::Player(size_t var_idx)
+	:var_idx_(var_idx)
 {
 	
 }
@@ -38,12 +38,24 @@ Player& Player::operator=(Player && other)
 	return *this;
 }
 
-void Player::substitute(std::vector<Polynomial> polys)
+void Player::make_hessian()
 {
-
+	size_t nvars = this->func().nvars();
+	for(int i=1; i<nvars; ++i){
+		for(int j=1; j<nvars; ++j){
+			this->hessian_[i][j] = this->func().second_derivative(i, j);
+		}
+	}
 }
 
-void Player::substitute(float)
+Dtype& Player::hessian_dfness()
 {
+	make_hessian();
+	return judge_hessian(this->hessian_);
+}
 
+// free function
+void judge_hessian_dfness(std::vector<float><float> hessian)
+{
+	// set dfness_
 }

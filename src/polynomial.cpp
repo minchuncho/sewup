@@ -23,7 +23,7 @@ std::vector<std::regex> Polynomial::make_reg_vector()
 	return regs;
 }
 
-void Polynomial::check_reg_exp(std::string token)
+void Polynomial::check_reg_exp(std::string const& token)
 {
 	bool valid = false;
 	for(auto const& reg:regs_){
@@ -218,7 +218,7 @@ Polynomial Polynomial::operator*(Polynomial const& pa, Polynomial const& pb)
 	return new_poly;
 }
 
-Polynomial& Polynomial::first_derivative(size_t const& var_idx)
+Polynomial Polynomial::first_derivative(size_t const& var_idx)
 {
 	Polynomial fderiv(this->nvars_);
 	
