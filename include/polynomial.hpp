@@ -1,33 +1,63 @@
+//
+//  polynomial.hpp
+//  sewup-xcode
+//
+//  Created by MinChunCho on 2022/5/8.
+//
+
+#ifndef polynomial_hpp
+#define polynomial_hpp
+
+#include <iostream>
+#include <stdexcept>
 #include <vector>
 #include <map>
 #include <regex>
 
-class Polynomial {
+const size_t DIM_MAX = 1001;
+
+class Polynomial{
 public:
-	Polynomial() = delete;
-	Polynomial(size_t const& nvars);
-	Polynomial(Polynomial const& other);
-	Polynomial(Polynomial && other);
-	~Polynomial();
-	Polynomial& operator=(Polynomial const& other);
-	Polynomial& operator=(Polynomial && other);
-	
-	Polynomial& operator=(std::string func_str);
-	Polynomial operator+(Polynomial const& pa, Polynomial const& pb);
-	Polynomial operator-(Polynomial const& pa, Polynomial const& pb);
-	Polynomial operator*(Polynomial const& pa, Polynomial const& pb);
-	Polynomial operator*(const float& constant);	// multiply a costant
-
-	Polynomial first_derivative(size_t const& var_idx);
-	float second_derivative(size_t const& var1_idx, size_t const& var2_idx);
-	size_t const& nvars() const { return nvars_; }
-	size_t& nvars() { return nvars_; }
+    Polynomial() = delete;
+    Polynomial(size_t const& dim);
+    Polynomial(Polynomial const& other);
+    Polynomial(Polynomial&& other);
+    Polynomial& operator=(Polynomial const& other);
+    Polynomial& operator=(Polynomial&& other);
+    ~Polynomial() = default;
+    
+    double& operator()(size_t const& row, size_t const& col);
+    double const& operator()(size_t const& row, size_t const& col) const;
+    void operator+=(Polynomial const& p);
+    void operator*=(double const& c);
+    void operator*=(Polynomial const& p);
+    friend Polynomial operator*(Polynomial const& p1, double const& c);
+    friend Polynomial operator*(Polynomial const& p1, Polynomial const& p2);
+    friend Polynomial operator+(Polynomial const& p1, Polynomial const& p2);
+    friend Polynomial operator-(Polynomial const& p1, Polynomial const& p2);
+    
+    void substitute(size_t const& var, Polynomial const& src, Polynomial& dest);
+    void substitute(size_t const& var, double const& src, double& dest);
+    Polynomial first_deriv(size_t const& var);
+    
 private:
-	void check_vars_match(Polynomial const& pa, Polynomial const& pb);
-	static void check_reg_exp(std::string const& token);
-	static void make_reg_vector();
-
-	size_t nvars_;									// number of variables: one leader, followers, and one constant
-	std::vector<float><float> terms_;				// coefficient of each term
-	static std::vector<std::regex> regs_;			// regular expressions to different kinds of term
+    static std::regex make_regexp(std::string const& regexp);
+    static std::vector<size_t> make_starting_index();
+    std::vector<std::string> get_tokens(std::string str);
+    void analyze_tokens(std::vector<std::string>& tokens);
+    
+    static std::regex token_exp_;
+    static std::regex int_exp_;
+    static std::regex singleton_exp_;
+    static std::regex doubleton_exp_;
+    static std::vector<size_t> starting_index_;
+    size_t dim_;
+    std::vector<double> mat_;   // different from Matrix so don't equalize 'em
 };
+
+Polynomial operator*(Polynomial const& p1, double const& c);
+Polynomial operator*(Polynomial const& p1, Polynomial const& p2);
+Polynomial operator+(Polynomial const& p1, Polynomial const& p2);
+Polynomial operator-(Polynomial const& p1, Polynomial const& p2);
+
+#endif /* polynomial_hpp */

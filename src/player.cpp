@@ -1,61 +1,70 @@
+//
+//  player.cpp
+//  sewup-xcode
+//
+//  Created by MinChunCho on 2022/5/9.
+//
+
 #include "player.hpp"
 
-Player::Player(size_t var_idx)
-	:var_idx_(var_idx)
-{
-	
-}
+Player::Player(size_t dim, size_t nvar)
+    : func_(dim), psol_(dim), hessian_(nvar, nvar) {}
 
 Player::Player(Player const& other)
-{
-	func_ = other.func_;
-	sol_ = other.sol_;
-}
+    : var_(other.var_), func_(other.func_), psol_(other.psol_), hessian_(other.hessian_), first_derivs_(other.first_derivs_), dfness_(other.dfness_), sol_(other.sol_) {}
 
 Player::Player(Player && other)
-{
-	std::swap(func_, other.func_);
-	std::swap(sol_, other.sol_);
-}
+    : var_(std::move(other.var_)), func_(std::move(other.func_)), psol_(std::move(other.psol_)), hessian_(std::move(other.hessian_)), first_derivs_(std::move(other.first_derivs_)), dfness_(std::move(other.dfness_)), sol_(std::move(other.sol_)) {}
 
 Player& Player::operator=(Player const& other)
 {
-	if(this != &other){
-		func_ = other.func_;
-		sol_ = other.sol_;
-	}
-
-	return *this;
+    if(this != &other){
+        var_ = other.var_;
+        func_ = other.func_;
+        psol_ = other.psol_;
+        hessian_ = other.hessian_;
+        first_derivs_ = other.first_derivs_;
+        dfness_ = other.dfness_;
+        sol_ = other.sol_;
+    }
+    
+    return *this;
 }
 
 Player& Player::operator=(Player && other)
 {
-	if(this != &other){
-		std::swap(func_, other.func_);
-		std::swap(sol_, other.sol_);
-	}
-
-	return *this;
+    if(this != &other){
+        std::swap(var_, other.var_);
+        std::swap(func_, other.func_);
+        std::swap(psol_, other.psol_);
+        std::swap(hessian_, other.hessian_);
+        std::swap(first_derivs_, other.first_derivs_);
+        std::swap(dfness_, other.dfness_);
+        std::swap(sol_, other.sol_);
+    }
+    
+    return *this;
 }
 
-void Player::make_hessian()
+bool Player::is_valid(Ftype const& ftype, size_t var_s, size_t var_e, Role role)
 {
-	size_t nvars = this->func().nvars();
-	for(int i=1; i<nvars; ++i){
-		for(int j=1; j<nvars; ++j){
-			this->hessian_[i][j] = this->func().second_derivative(i, j);
-		}
-	}
+    calc_hessian_mat(var_s, var_e, role);
+    dfness_ = (Dtype)ftype;
+    return hessian_.dfness(dfness_);
 }
 
-Dtype& Player::hessian_dfness()
+void Player::calc_hessian_mat(size_t var_s, size_t var_e, Role role)
 {
-	make_hessian();
-	return judge_hessian(this->hessian_);
-}
-
-// free function
-void judge_hessian_dfness(std::vector<float><float> hessian)
-{
-	// set dfness_
+    Polynomial* ptr;
+    if(role == leader) ptr = &psol();
+    else ptr = &func();
+    
+    for(size_t i=var_s; i<=var_e; ++i){
+        if(first_derivs_.find(i) == first_derivs_.end()){
+            first_derivs_.at(i) = ptr->first_deriv(i);
+        }
+        for(size_t j=var_s; j<=var_e; ++j){
+            hessian_(i-var_s, j-var_s) += first_derivs_.at(i).first_deriv(j)(0, 0);
+        }
+    }
 }

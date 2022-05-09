@@ -1,260 +1,282 @@
+//
+//  polynomial.cpp
+//  sewup-xcode
+//
+//  Created by MinChunCho on 2022/5/8.
+//
+
 #include "polynomial.hpp"
 
-Polynomial::regs_ = make_reg_vector();
+std::regex Polynomial::token_exp_ = make_regexp("-?(([0-9]*[.])?[0-9]+)?((x|y)_([1-9][0-9]*))?((x|y)_([1-9][0-9]*))?");
+std::regex Polynomial::int_exp_ = make_regexp("[1-9][0-9]*");
+std::regex Polynomial::singleton_exp_ = make_regexp("(x|y)_([1-9][0-9]*)");
+std::regex Polynomial::doubleton_exp_ = make_regexp("(x|y)_([1-9][0-9]*)(x|y)_([1-9][0-9]*)?");
+std::vector<size_t> Polynomial::starting_index_ = make_starting_index();
 
-std::vector<std::regex> Polynomial::make_reg_vector()
-{
-	/* regular expression
-		1. 2*x_1, -2*x_1, p*x_1
-		2. 2*x_1*x_2, -2*x_1*x_2
-		3. 2*x_1^2, -2*x_1^2
-		4. 2, -2
-		5. 2*p, -2*p
-	*/
-
-	std::regex reg_singleton("((\\-)?[1-9][0-9]*\\*)?(p\\*)?(x_[1-9][0-9]*)"),
-		reg_doubleton("(\\-)?[1-9][0-9]*\\*)?(x_[1-9][0-9]*)\\*(x_[1-9][0-9]*)"),
-		reg_square("(\\-)?[1-9][0-9]*\\*)?(x_[1-9][0-9]*)\\^2"),
-		reg_const("((\\-)?[1-9][0-9]*)?"),
-		reg_p("((\\-)?[1-9][0-9]*\\*)?p");
-
-	std::vector<std::regex> regs = {reg_singleton, reg_doubleton, reg_square, reg_const, reg_p};
-
-	return regs;
-}
-
-void Polynomial::check_reg_exp(std::string const& token)
-{
-	bool valid = false;
-	for(auto const& reg:regs_){
-		valid |= regex_match(token, reg);
-	}
-
-	if(!valid) throw std::regex_error("token not matched");
-}
-
-void Polynomial::check_vars_match(Polynomial const& pa, Polynomial const& pb)
-{
-	if(pa.nvars_ != pb.nvars_){
-		throw std::exception("cannot operate on functions with different sets of vars.");
-	}
-}
-
-Polynomial::Polynomial(size_t const& nvar)
-{
-	nvars_ = nvars;
-	if(!terms_.empty){
-		terms_.clear();
-		terms_.shrink_to_fit();
-	}
-	terms_.resize(nvars_+1, std::vector<float>(nvars_+1, 0));
-}
+Polynomial::Polynomial(size_t const& dim)
+    : dim_(dim), mat_(dim, 0) {}
 
 Polynomial::Polynomial(Polynomial const& other)
-{
-	terms_ = other.terms_;
-	nvars_ = other.nvars_;
-}
+    : dim_(other.dim_), mat_(other.mat_) {}
 
-Polynomial::Polynomial(Polynomial && other)
-{
-	terms_ = std::move(other.terms_);
-	std::swap(nvars_, other.nvars_);
-}
-
-Polynomial::~Polynomial()
-{
-	for(int i=0; i<terms_.size(); ++i){
-		terms_[i].clear();
-		terms_[i].shrink_to_fit();
-	}
-}
+Polynomial::Polynomial(Polynomial&& other)
+    : dim_(std::move(other.dim_)), mat_(std::move(other.mat_)) {}
 
 Polynomial& Polynomial::operator=(Polynomial const& other)
 {
-	if(this != &other){
-		terms_ = other.terms_;
-		nvars_ = other.nvars_;
-	}
-
-	return *this;
+    if(&other != this){
+        dim_ = other.dim_;
+        mat_ = other.mat_;
+    }
+    
+    return *this;
 }
 
-Polynomial& Polynomial::operator=(Polynomial && other)
+Polynomial& Polynomial::operator=(Polynomial&& other)
 {
-	if(this != &other){
-		for(int i=0; i<terms_.size(); ++i){
-			terms_[i] = std::move(other.terms_[i]);
-		}
-
-		std::swap(nvars_, other.nvars_);
-	}
-
-	return *this;
+    if(&other != this){
+        dim_ = std::move(other.dim_);
+        mat_ = std::move(other.mat_);
+    }
+    
+    return *this;
 }
 
-Polynomial& Polynomial::operator=(std::string func_str)
+double& Polynomial::operator()(size_t const& row, size_t const& col)
 {
-	// example: 1 + x_3 - 2*x_5 + x_2*x_3 + p*x_7
-	std::vector<std::string> tokens;
-	str::string token = "";
-	for(int i=0; i<func_str.length(); ++i){
-		char c = str[i];
-		switch(c){
-			case '+':
-				check_reg_exp(token);
-				tokens.push_back(token);
-				token.clear();
-				break;
-			case '-':
-				check_reg_exp(token);
-				tokens.push_back(token);
-				token.clear();
-				token += c; // put minus back for the next term
-				break;
-			case ' ':
-				break;
-			default:
-				token += c;
-				break;
-		}
-	}
-
-	for(int i=0; i<tokens.size(); ++i){
-		token = tokens[i];
-		std::string constant = "";
-		int j=0;
-
-		// constant
-		for(; j<token.size(); ++j){
-			char tc = token[j];
-			if(tc == '-'){
-				constant += tc;
-				continue;
-			}
-			if(tc != 'x' || tc != 'p'){
-				constant += tc;
-			}
-			else{
-				break;
-			}
-		}
-
-		int coefficient = std::stoi(constant);
-
-		// variables
-		--j;
-		std::vector<short> index(2, -1);
-		size_t count=0;
-
-		while(j<token.size()){
-			char tc=token[j];
-			bool has_p = false;
-			if(tc == 'p'){
-				has_p = true;
-				++j;
-				continue;
-			}
-			else if(tc='x'){
-				j+=2;
-				index[count++]=token[j++];
-			}
-		}
-
-		// assign coefficient to term
-		int idx1=index[0], idx2=index[1];
-
-		if(idx2 == -1){
-			if(has_p) idx2 = nvars_;
-			else idx2 = idx1;
-			idx1=0;
-		}
-		
-		if(idx1 > idx2) swap(idx1, idx2);
-		terms_[idx1][idx2] = coefficient;
-	}
+    if(row>col) return mat_[starting_index_[col]+row];
+    else return mat_[starting_index_[row]+col];
 }
 
-Polynomial Polynomial::operator+(Polynomial const& pa, Polynomial const& pb)
+double const& Polynomial::operator()(size_t const& row, size_t const& col) const
 {
-	check_vars_match(pa, pb);
-
-	Polynomial new_poly(pa.nvars_);
-	for(int i=0; i<=nvars_; ++i){
-		for(int j=i; j<=nvars_; ++j){
-			new_poly.terms_[i][j] = pa.terms_[i][j]+pb.terms_[i][j];
-		}
-	}
+    if(row>col) return mat_[starting_index_[col]+row];
+    else return mat_[starting_index_[row]+col];
 }
 
-Polynomial Polynomial::operator-(Polynomial const& pa, Polynomial const& pb)
+void Polynomial::operator+=(Polynomial const& p)
 {
-	check_vars_match(pa, pb);
-
-	Polynomial new_poly(pa.nvars_);
-	for(int i=0; i<=nvars_; ++i){
-		for(int j=i; j<=nvars_; ++j){
-			new_poly.terms_[i][j] = pa.terms_[i][j]-pb.terms_[i][j];
-		}
-	}
+    (*this) = (*this) + p;
 }
 
-Polynomial Polynomial::operator*(Polynomial const& pa, Polynomial const& pb)
+void Polynomial::operator*=(double const& c)
 {
-	check_vars_match(pa, pb);
-
-	Polynomial new_poly(pa.nvars_);
-	for(int i=0; i<=nvars_; ++i){
-		for(int j=0; j<=nvars_; ++j){
-			if(i<j){
-				new_poly.terms_[i][j] = pa.terms_[0][i]+pb.terms_[0][j];
-			}
-			else{
-				new_poly.terms_[j][i] = pa.terms_[0][i]+pb.terms_[0][j];
-			}
-		}
-	}
-
-	return new_poly;
+    for(int i=0; i<dim_; ++i){
+        for(int j=0; j<dim_; ++j){
+            (*this)(i, j) = (*this)(i, j)*c;
+        }
+    }
 }
 
-Polynomial Polynomial::first_derivative(size_t const& var_idx)
+void Polynomial::operator*=(Polynomial const& p)
 {
-	Polynomial fderiv(this->nvars_);
-	
-	// row var_idx
-	for(int j=var_idx; j<=this->nvars_; ++j){
-		int res = this->terms_[var_idx][j];
-		if(j == var_idx) res *= 2;
-		fderiv->terms_[0][j] = res;
-	}
-
-	// col var_idx
-	for(int i=0; i<this->nvars_; ++i){
-		fderiv->terms_[i][0] = this->terms_[i][var_idx];;
-	}
-
-	this->first_derivs_[var_idx] = fderiv;
-
-	return this->first_derivs_[var_idx];
+    size_t n = dim_;
+    if(n != p.dim_) throw std::out_of_range("function dimensions are different");
+    
+    Polynomial ret(n);
+    for(int i=0; i<n; ++i){
+        for(int j=0; j<n; ++j){
+            (*this)(i, j) += (*this)(0, i) * p(0, j);
+        }
+    }
 }
 
-float Polynomial::second_derivative(size_t const& var1_idx, size_t const& var2_idx)
+std::regex Polynomial::make_regexp(std::string const& regexp)
 {
-	if(this->first_derivs_.find(var1_idx) != this->first_derivs_.end()){
-		Polynomial fderiv=this->first_derivs_[var1_idx];
-		Polynomial sderiv=fderiv.first_derivative(var2_idx);
-		return sderiv[0][0];
-	}
-	
-	if(this->first_derivs_.find(var2_idx) != this->first_derivs_.end()){
-		Polynomial fderiv=this->first_derivs_[var2_idx];
-		Polynomial sderiv=fderiv.first_derivative(var1_idx);
-		return sderiv[0][0];
-	}
+    std::regex res(regexp);
+    return res;
+}
 
-	Polynomial fderiv=first_derivative(var1_idx),
-				sderiv=fderiv.first_derivative(var2_idx);
+std::vector<size_t> Polynomial::make_starting_index()
+{
+    std::vector<size_t> res(DIM_MAX, 0);
+    for(int i=1; i<=DIM_MAX; ++i){
+        res[i] = res[i-1] + (DIM_MAX-i+1);
+    }
+    
+    return res;
+}
 
-	return sderiv[0][0];			
+std::vector<std::string> Polynomial::get_tokens(std::string str)
+{
+    size_t s=0, e=s, n=str.length();
+    std::vector<std::string> tokens;
+    std::smatch sm;
+    while(e < n && s < n){
+        if(str[e] == '+'){
+            std::string token = str.substr(s, e-s);
+            if(!std::regex_match(token, sm, token_exp_)){
+                throw std::invalid_argument("wrong function format");
+            }
+            tokens.emplace_back(token);
+            s=e+1;
+        }
+        else if(str[e] == '-'){
+            std::string token = str.substr(s, e-s);
+            if(!std::regex_match(token, sm, token_exp_)){
+                throw std::invalid_argument("wrong function format");
+            }
+            tokens.emplace_back(token); // include the substraction sign
+            s=e;
+        }
+        ++e;
+    }
+    
+    tokens.emplace_back(str.substr(s, e-s)); // the last substring
+    
+    return tokens;
+}
+
+void Polynomial::analyze_tokens(std::vector<std::string>& tokens)
+{
+    std::smatch sm;
+    
+    for(auto tk:tokens){
+        std::vector<int> nums;
+        if(std::regex_search(tk, sm, doubleton_exp_)){
+            std::smatch sm2;
+            std::string term = sm.str();
+            size_t cnt = 0, index[2];
+            while(std::regex_search(term, sm2, int_exp_)){
+                index[cnt]=std::stoi(sm2.str());
+                ++cnt;
+            }
+            (*this)(index[0], index[1]) = std::stod(sm.prefix().str());
+        }
+        else if(std::regex_search(tk, sm, singleton_exp_)){
+            std::smatch sm2;
+            std::string term = sm.str();
+            if(std::regex_search(term, sm2, int_exp_)){
+                (*this)(0, std::stoi(sm2.str())) = std::stod(sm.prefix().str());
+            }
+        }
+        else if(std::regex_search(tk, sm, int_exp_)){
+            (*this)(0, 0) = std::stod(sm.str());
+        }
+    }
+}
+
+void Polynomial::substitute(size_t const& var, Polynomial const& src, Polynomial& dest)
+{
+    std::vector<Polynomial> polys;
+    for(size_t i=0; i<var-1; ++i){
+        double v = (*this)(i, var);
+        if(v != 0){
+            Polynomial p(dim_);
+            p(i, 0) = v;
+            p = p*src;
+            polys.emplace_back(p);
+        }
+    }
+    for(size_t i=var+1; i<dim_; ++i){
+        double v = (*this)(var, i);
+        if(v != 0){
+            Polynomial p(dim_);
+            p(0, i) = v;
+            p = p*src;
+            polys.emplace_back(p);
+        }
+    }
+    double v = (*this)(var, var);
+    if(v != 0){
+        Polynomial p(dim_);
+        p = v*src*src;
+        polys.emplace_back(p);
+    }
+    
+    for(auto const& p: polys){
+        dest += p;
+    }
+}
+
+void Polynomial::substitute(size_t const& var, double const& src, double& dest)
+{
+    for(size_t i=0; i<var-1; ++i){
+        double v = (*this)(i, var);
+        if(v != 0){
+            dest += v*src;
+        }
+    }
+    for(size_t i=var+1; i<dim_; ++i){
+        double v = (*this)(var, i);
+        if(v != 0){
+            dest += v*src;
+        }
+    }
+    double v = (*this)(var, var);
+    if(v != 0){
+        dest += v*src*src;
+    }
+}
+
+Polynomial Polynomial::first_deriv(size_t const& var)
+{
+    Polynomial p(dim_);
+    for(size_t i=0; i<var; ++i){
+        p(0, i) += (*this)(var, i);
+    }
+    for(size_t i=var+1; i<dim_; ++i){
+        p(0, i) += (*this)(i, var);
+    }
+    p(0, var) = 2*(*this)(var, var);
+    
+    return p;
+}
+
+/* stand-alone operator overloading */
+Polynomial operator*(Polynomial const& p1, double const& c)
+{
+    Polynomial p(p1);
+    for(int i=0; i<p.dim_; ++i){
+        for(int j=0; j<p.dim_; ++j){
+            p(i, j) = p(i, j)*c;
+        }
+    }
+    
+    return p;
+}
+
+Polynomial operator*(Polynomial const& p1, Polynomial const& p2)
+{
+    size_t n = p1.dim_;
+    if(n != p2.dim_) throw std::out_of_range("function dimensions are different");
+    
+    Polynomial ret(n);
+    for(int i=0; i<n; ++i){
+        for(int j=0; j<n; ++j){
+            ret(i, j) += p1(0, i) * p2(0, j);
+        }
+    }
+    
+    return ret;
+}
+
+Polynomial operator+(Polynomial const& p1, Polynomial const& p2)
+{
+    size_t n = p1.dim_;
+    if(n != p2.dim_) throw std::out_of_range("function dimensions are different");
+    
+    Polynomial ret(p1);
+    for(int i=0; i<n; ++i){
+        for(int j=0; j<n; ++j){
+            ret(i, j) += p2(i, j);
+        }
+    }
+    
+    return ret;
+}
+
+Polynomial operator-(Polynomial const& p1, Polynomial const& p2)
+{
+    size_t n = p1.dim_;
+    if(n != p2.dim_) throw std::out_of_range("function dimensions are different");
+    
+    Polynomial ret(p1);
+    for(int i=0; i<n; ++i){
+        for(int j=0; j<n; ++j){
+            ret(i, j) -= p2(i, j);
+        }
+    }
+    
+    return ret;
 }
