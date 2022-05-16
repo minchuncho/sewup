@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        fetch-depth: 1
+        submodules: 'true'
 
     - name: dependency (ubuntu)
       run: |
@@ -24,9 +24,6 @@ jobs:
             python3-numpy python3-scipy python3-pandas python3-matplotlib \
             jupyter
         cd /usr/bin ; sudo ln -sf py.test-
-
-    - name: dependency (custom)
-      run: pip3 install pybind11
 
     - name: make
       run: make
