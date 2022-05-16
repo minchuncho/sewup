@@ -38,6 +38,7 @@ public:
     double operator()(size_t const& i, size_t const& j) const;
     bool operator==(Matrix const& mat) const;
     bool operator!=(Matrix const& mat) const;
+    void operator*=(double const& c);
     friend std::ostream& operator<<(std::ostream& os, Matrix mat);
     friend Matrix multiply_naive(Matrix const& ma, Matrix const& mb);
     friend Matrix multiply_tile(Matrix const& mat1, Matrix const& mat2, size_t tsize);
@@ -61,6 +62,7 @@ private:
     std::vector<double> vec_;
 };
 
+std::ostream& operator<<(std::ostream& os, Matrix mat);
 Matrix multiply_naive(Matrix const& mat1, Matrix const& mat2);
 Matrix multiply_tile(Matrix const& mat1, Matrix const& mat2, size_t tsize);
 

@@ -84,7 +84,8 @@ bool Matrix::operator==(Matrix const& mat) const
 {
     if(this->col_ != mat.col_ || this->row_ != mat.row_) return false;
     
-    for(size_t i=0; i<this->size(); i++){
+    size_t total = this->size();
+    for(size_t i=0; i<total; ++i){
         // a floating-point precision issue
         // if(this->vec_[i] != mat.vec_[i]) return false;
         if(fabs(this->vec_[i]-mat.vec_[i]) > 0.000001f) return false;
@@ -95,7 +96,7 @@ bool Matrix::operator==(Matrix const& mat) const
 
 bool Matrix::operator!=(Matrix const& mat) const
 {
-    return (*this) == mat;
+    return !((*this) == mat);
 }
 
 bool Matrix::bound_check(size_t const& i, size_t const& j)
@@ -111,6 +112,15 @@ double Matrix::get_element(std::pair<size_t, size_t> index)
 void Matrix::set_element(std::pair<size_t, size_t> index, const double& item)
 {
     (*this)(index.first, index.second) = item;
+}
+
+void Matrix::operator*=(double const& c)
+{
+    for(int i=0; i<row_; ++i){
+        for(int j=0; j<col_; ++j){
+            (*this)(i, j) *= -1;
+        }
+    }
 }
 
 std::string Matrix::get_matrix_str()
@@ -137,7 +147,7 @@ Matrix Matrix::cholesky_decomposition()
     Matrix lower(row_, row_);
     
     for(int i=0; i<row_; ++i){
-        for(int j=0; j<i; ++j){
+        for(int j=0; j<=i; ++j){
             double sum=0;
             if(j == i){
                 for(int k=0; k<j; ++k){
@@ -178,27 +188,35 @@ bool Matrix::dfness(Dtype const& dtype)
         throw std::out_of_range("cholesky_decomposition is only available for square matrices");
     }
     
+    // LU decomposition only works for positive-defeniteness
+    if(dtype == negative) (*this) *= (-1);
+    
     // diagoal elements
     bool diag = true;
     Matrix lower = cholesky_decomposition();
+    
     for(int i=0; i<row_; ++i){
-        diag &= (dtype==positive ? lower(i, i)>0 : lower(i, i)<0);
+        diag &= lower(i, i) > 0;
     }
     
     if(!diag) return false;
     
     // LU
     Matrix upper = lower.transpose();
-    if((*this) != multiply_tile(lower, upper, 32)) return false;
+    Matrix ret = multiply_tile(lower, upper, 32);
+    
+    if((*this) != ret) return false;
+    
+    if(dtype == negative) (*this) *= (-1);
     
     return true;
 }
 
 std::ostream& operator<<(std::ostream& os, Matrix mat)
 {
-    for(size_t i=0; i<mat.row_; i+=mat.col_){
-        for(size_t j=0; j<mat.col_; j++){
-            std::cout << mat(i, j) << " ";
+    for(size_t i=0; i<mat.row_; ++i){
+        for(size_t j=0; j<mat.col_; ++j){
+            std::cout << mat(i, j) << ", ";
         }
         std::cout << std::endl;
     }
