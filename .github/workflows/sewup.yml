@@ -1,4 +1,4 @@
-name: sewup CI
+name: Sewup CI
 
 on:
   push:
@@ -15,15 +15,21 @@ jobs:
       with:
         fetch-depth: 1
 
-    - name: dependency
+    - name: dependency (ubuntu)
       run: |
         sudo apt-get -q update
         sudo apt-get -qy install \
             curl build-essential make cmake libc6-dev \
+            gcc g++ gfortran intel-mkl-full \
             python3 python3-pip python3-pytest \
             python3-numpy python3-scipy python3-pandas python3-matplotlib \
             jupyter
         cd /usr/bin ; sudo ln -sf py.test-3 py.test
+        
+    - name: dependency (custom)
+      run: |
+        export INSTALL_PREFIX=/usr
+        sudo contrib/install.sh everything
 
     - name: make
       run: make
