@@ -5,7 +5,7 @@ SDIR = src
 
 # ubuntu
 CFLAGS = -O3 -Wall -shared -std=c++17 -fPIC
-PYBIND = -I/usr/include/pybind11 -lpython3.8
+PYBIND = -I/usr/local/include/pybind11 -lpython3.8
 OBJS = $(shell find src -name '*.cpp')
 
 # osx
