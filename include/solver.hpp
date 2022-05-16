@@ -9,10 +9,16 @@
 #define solver_hpp
 
 #include <vector>
+#include <pybind11/pybind11.h>
+// #include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+#include <pybind11/operators.h>
 
 #include "player.hpp"
 #include "polynomial.hpp"
 #include "matrix.hpp"
+
+namespace py = pybind11;
 
 class Solver{
 public:
@@ -52,8 +58,8 @@ PYBIND11_MODULE(_solver, m) {
         .def(py::init<size_t const&, size_t const&>())
         .def(py::init<size_t const&, size_t const&, std::vector<double> const&>())
         .def(py::self == py::self)
-        .def_property_readonly("nrow", &Matrix::row)
-        .def_property_readonly("ncol", &Matrix::col)
+        .def_property_readonly("nrow", &Matrix::nrow)
+        .def_property_readonly("ncol", &Matrix::ncol)
         .def("__setitem__", &Matrix::set_element)
         .def("__getitem__", &Matrix::get_element)
         .def("__repr__", &Matrix::get_matrix_str)
@@ -62,6 +68,11 @@ PYBIND11_MODULE(_solver, m) {
         
     m.def("multiply_naive", &multiply_naive);
     m.def("multiply_tile", &multiply_tile);
+
+    py::enum_<Dtype>(m, "Dtype")
+        .value("positive", Dtype::positive)
+        .value("negative", Dtype::negative)
+        .export_values();
 };
 
 #endif /* solver_hpp */

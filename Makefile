@@ -11,15 +11,16 @@ OBJS = $(shell find src -name '*.cpp')
 # osx
 # CFLAGS = -O3 -Wall -shared -std=c++17 -fPIC -undefined dynamic_lookup
 # PYBIND = -I/usr/local/include/pybind11
-# OBJS = $(SDIR)/*.c
+# OBJS = $(shell find src -name '*.cpp')
 
 EXEC = _solver
 
 all: $(OBJS)
-	$(CC) $(CFLAGS) $(PY_IDIR) $(PYBIND) -I. $(SDIR)$(OBJS) -o $(EXEC)$(PY_EXTS)
+	$(CC) $(CFLAGS) $(PY_IDIR) $(PYBIND) -Iinclude $(OBJS) -o $(EXEC)$(PY_EXTS)
 
 test: $(OBJS)
-	python3 -m unittest tests
+# 	python3 -m pytest tests -v -s
+	python3 -m pytest tests/test_matrix.py -v -s
 
 .PHONY: clean
 clean:
