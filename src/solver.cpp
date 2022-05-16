@@ -128,28 +128,29 @@ void Solver::solve_leaders()
 
 void Solver::substitute_to_followers()
 {
+    // try to substitute "p1+p2+4p3" where p1 p2 p3 are already double (not polynomial)
+    
     for(int i=0; i<nf_; ++i){
-        double dest=0;
+        double res=0;
         for(int j=0; j<nl_; ++j){
-            double src = leaders_[j].sol();
-            size_t var = followers_[j].var();
-            followers_[i].psol().substitute(var, src, dest);
+            res += substitute(followers_[j].var(), leaders_[j].sol(), followers_[i].psol());
         }
-        followers_[i].sol() = dest;
+        followers_[i].sol() = res;
     }
 }
 
 void Solver::substitute_to_leaders()
 {
+    // try to substitute "p1x1+p2x3+4p3x1" where x1 x2 x4 are all polynomial of p1 p2 p3
+    
     size_t dim = nf_+nl_+1;
+    
     for(int i=0; i<nl_; ++i){
-        Polynomial dest(dim);
+        Polynomial res(dim);
         for(int j=0; j<nf_; ++j){
-            Polynomial src = followers_[j].psol();
-            size_t var = followers_[j].var();
-            leaders_[i].psol().substitute(var, src, dest);
+            res += substitute(followers_[j].var(), followers_[j].psol(), leaders_[i].psol());
         }
-        leaders_[i].psol() = dest;
+        leaders_[i].psol() = res;
     }
 }
 

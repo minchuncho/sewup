@@ -132,29 +132,10 @@ Matrix Matrix::inverse()
     return res;
 }
 
-bool Matrix::dfness(Dtype dtype)
-{
-    if(row_ != col_) throw std::out_of_range("cholesky_decomposition is only available for square matrices");
-    
-    // diagoal elements
-    bool diag = true;
-    Matrix lower = cholesky_decomposition();
-    for(int i=0; i<row_; ++i){
-        diag &= (dtype==positive ? lower(i, i)>0 : lower(i, i)<0);
-    }
-    
-    if(!diag) return false;
-    
-    // LU
-    Matrix upper = lower.transpose();
-    if((*this) != multiply_tile(lower, upper, 32)) return false;
-    
-    return true;
-}
-
 Matrix Matrix::cholesky_decomposition()
 {
     Matrix lower(row_, row_);
+    
     for(int i=0; i<row_; ++i){
         for(int j=0; j<i; ++j){
             double sum=0;
@@ -181,6 +162,7 @@ Matrix Matrix::cholesky_decomposition()
 Matrix Matrix::transpose()
 {
     Matrix ret(col_, row_);
+    
     for(int i=0; i<row_; ++i){
         for(int j=0; j<col_; ++j){
             ret(j, i) = (*this)(i, j);
@@ -188,6 +170,28 @@ Matrix Matrix::transpose()
     }
     
     return ret;
+}
+
+bool Matrix::dfness(Dtype const& dtype)
+{
+    if(row_ != col_){
+        throw std::out_of_range("cholesky_decomposition is only available for square matrices");
+    }
+    
+    // diagoal elements
+    bool diag = true;
+    Matrix lower = cholesky_decomposition();
+    for(int i=0; i<row_; ++i){
+        diag &= (dtype==positive ? lower(i, i)>0 : lower(i, i)<0);
+    }
+    
+    if(!diag) return false;
+    
+    // LU
+    Matrix upper = lower.transpose();
+    if((*this) != multiply_tile(lower, upper, 32)) return false;
+    
+    return true;
 }
 
 std::ostream& operator<<(std::ostream& os, Matrix mat)

@@ -46,6 +46,12 @@ Player& Player::operator=(Player && other)
     return *this;
 }
 
+Player& Player::operator=(std::string const& func)
+{
+    func_ = func;
+    return *this;
+}
+
 bool Player::is_valid(Ftype const& ftype, size_t var_s, size_t var_e, Role role)
 {
     calc_hessian_mat(var_s, var_e, role);

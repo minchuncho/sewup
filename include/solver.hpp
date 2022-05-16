@@ -47,4 +47,21 @@ private:
 
 std::ostream& operator<<(std::ostream& os, Solver solver);
 
+PYBIND11_MODULE(_solver, m) {
+    py::class_<Matrix>(m, "Matrix")
+        .def(py::init<size_t const&, size_t const&>())
+        .def(py::init<size_t const&, size_t const&, std::vector<double> const&>())
+        .def(py::self == py::self)
+        .def_property_readonly("nrow", &Matrix::row)
+        .def_property_readonly("ncol", &Matrix::col)
+        .def("__setitem__", &Matrix::set_element)
+        .def("__getitem__", &Matrix::get_element)
+        .def("__repr__", &Matrix::get_matrix_str)
+        // .def("inverse", &Matrix::inverse)
+        .def("dfness", &Matrix::dfness);
+        
+    m.def("multiply_naive", &multiply_naive);
+    m.def("multiply_tile", &multiply_tile);
+};
+
 #endif /* solver_hpp */

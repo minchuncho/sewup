@@ -14,19 +14,25 @@ std::regex Polynomial::doubleton_exp_ = make_regexp("(x|y)_([1-9][0-9]*)(x|y)_([
 std::vector<size_t> Polynomial::starting_index_ = make_starting_index();
 
 Polynomial::Polynomial(size_t const& dim)
-    : dim_(dim), mat_(dim, 0) {}
+    : dim_(dim), terms_(dim, 0) {}
+
+Polynomial::Polynomial(size_t const& dim, std::string const& func)
+    : dim_(dim), terms_(dim, 0)
+{
+    *this = func;
+}
 
 Polynomial::Polynomial(Polynomial const& other)
-    : dim_(other.dim_), mat_(other.mat_) {}
+    : dim_(other.dim_), terms_(other.terms_) {}
 
 Polynomial::Polynomial(Polynomial&& other)
-    : dim_(std::move(other.dim_)), mat_(std::move(other.mat_)) {}
+    : dim_(std::move(other.dim_)), terms_(std::move(other.terms_)) {}
 
 Polynomial& Polynomial::operator=(Polynomial const& other)
 {
     if(&other != this){
         dim_ = other.dim_;
-        mat_ = other.mat_;
+        terms_ = other.terms_;
     }
     
     return *this;
@@ -36,22 +42,38 @@ Polynomial& Polynomial::operator=(Polynomial&& other)
 {
     if(&other != this){
         dim_ = std::move(other.dim_);
-        mat_ = std::move(other.mat_);
+        terms_ = std::move(other.terms_);
     }
+    
+    return *this;
+}
+
+Polynomial& Polynomial::operator=(std::string const& func)
+{
+    std::vector<std::string> tokens = get_tokens(func);
+    analyze_tokens(tokens);
     
     return *this;
 }
 
 double& Polynomial::operator()(size_t const& row, size_t const& col)
 {
-    if(row>col) return mat_[starting_index_[col]+row];
-    else return mat_[starting_index_[row]+col];
+    if(row >= dim_ || col >= dim_){
+        throw std::out_of_range("row or col is larger than the dimension");
+    }
+    
+    if(row>col) return terms_[starting_index_[col]+row];
+    else return terms_[starting_index_[row]+col];
 }
 
 double const& Polynomial::operator()(size_t const& row, size_t const& col) const
 {
-    if(row>col) return mat_[starting_index_[col]+row];
-    else return mat_[starting_index_[row]+col];
+    if(row >= dim_ || col >= dim_){
+        throw std::out_of_range("row or col is larger than the dimension");
+    }
+    
+    if(row>col) return terms_[starting_index_[col]+row];
+    else return terms_[starting_index_[row]+col];
 }
 
 void Polynomial::operator+=(Polynomial const& p)
@@ -83,18 +105,18 @@ void Polynomial::operator*=(Polynomial const& p)
 
 std::regex Polynomial::make_regexp(std::string const& regexp)
 {
-    std::regex res(regexp);
-    return res;
+    std::regex ret(regexp);
+    return ret;
 }
 
 std::vector<size_t> Polynomial::make_starting_index()
 {
-    std::vector<size_t> res(DIM_MAX, 0);
+    std::vector<size_t> ret(DIM_MAX, 0);
     for(int i=1; i<=DIM_MAX; ++i){
-        res[i] = res[i-1] + (DIM_MAX-i+1);
+        ret[i] = ret[i-1] + (DIM_MAX-i+1);
     }
     
-    return res;
+    return ret;
 }
 
 std::vector<std::string> Polynomial::get_tokens(std::string str)
@@ -156,57 +178,72 @@ void Polynomial::analyze_tokens(std::vector<std::string>& tokens)
     }
 }
 
-void Polynomial::substitute(size_t const& var, Polynomial const& src, Polynomial& dest)
+Polynomial substitute(size_t const& var, Polynomial const& src, Polynomial const& target)
 {
+    size_t dim = target.dim_;
     std::vector<Polynomial> polys;
+    Polynomial ret(dim);
+    
     for(size_t i=0; i<var-1; ++i){
-        double v = (*this)(i, var);
+        double v = target(i, var);
         if(v != 0){
-            Polynomial p(dim_);
+            Polynomial p(dim);
             p(i, 0) = v;
             p = p*src;
             polys.emplace_back(p);
         }
     }
-    for(size_t i=var+1; i<dim_; ++i){
-        double v = (*this)(var, i);
+    
+    for(size_t i=var+1; i<dim; ++i){
+        double v = target(var, i);
         if(v != 0){
-            Polynomial p(dim_);
+            Polynomial p(dim);
             p(0, i) = v;
             p = p*src;
             polys.emplace_back(p);
         }
     }
-    double v = (*this)(var, var);
+    
+    double v = target(var, var);
+    
     if(v != 0){
-        Polynomial p(dim_);
+        Polynomial p(dim);
         p = v*src*src;
         polys.emplace_back(p);
     }
     
     for(auto const& p: polys){
-        dest += p;
+        ret += p;
     }
+    
+    return ret;
 }
 
-void Polynomial::substitute(size_t const& var, double const& src, double& dest)
+double substitute(size_t const& var, double const& src, Polynomial const& target)
 {
+    double ret = 0;
+    
     for(size_t i=0; i<var-1; ++i){
-        double v = (*this)(i, var);
+        double v = target(i, var);
         if(v != 0){
-            dest += v*src;
+            ret += v*src;
         }
     }
-    for(size_t i=var+1; i<dim_; ++i){
-        double v = (*this)(var, i);
+    
+    for(size_t i=var+1; i<target.dim_; ++i){
+        double v = target(var, i);
         if(v != 0){
-            dest += v*src;
+            ret += v*src;
         }
     }
-    double v = (*this)(var, var);
+    
+    double v = target(var, var);
+    
     if(v != 0){
-        dest += v*src*src;
+        ret += v*src*src;
     }
+    
+    return ret;
 }
 
 Polynomial Polynomial::first_deriv(size_t const& var)
@@ -221,6 +258,16 @@ Polynomial Polynomial::first_deriv(size_t const& var)
     p(0, var) = 2*(*this)(var, var);
     
     return p;
+}
+
+double Polynomial::get_element(std::pair<size_t, size_t> index)
+{
+    return (*this)(index.first, index.second);
+}
+
+void Polynomial::set_element(std::pair<size_t, size_t> index, const double& item)
+{
+    (*this)(index.first, index.second) = item;
 }
 
 /* stand-alone operator overloading */

@@ -41,17 +41,15 @@ public:
     friend std::ostream& operator<<(std::ostream& os, Matrix mat);
     friend Matrix multiply_naive(Matrix const& ma, Matrix const& mb);
     friend Matrix multiply_tile(Matrix const& mat1, Matrix const& mat2, size_t tsize);
-    friend Matrix multiply_mkl(Matrix& ma, Matrix& mb);
 
     size_t nrow() const { return row_; }
     size_t ncol() const { return col_; }
     size_t size() const { return row_*col_; }
-    double* addr() { return &vec_[0]; }
     double get_element(std::pair<size_t, size_t> index);
     void set_element(std::pair<size_t, size_t> index, const double& item);
     std::string get_matrix_str();
     Matrix inverse();
-    bool dfness(Dtype dtype);
+    bool dfness(Dtype const&);
 
 private:
     bool bound_check(size_t const& i, size_t const& j);

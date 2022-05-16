@@ -20,25 +20,30 @@ class Polynomial{
 public:
     Polynomial() = delete;
     Polynomial(size_t const& dim);
+    Polynomial(size_t const& dim, std::string const& func);
     Polynomial(Polynomial const& other);
     Polynomial(Polynomial&& other);
     Polynomial& operator=(Polynomial const& other);
     Polynomial& operator=(Polynomial&& other);
     ~Polynomial() = default;
     
+    Polynomial& operator=(std::string const& func);
     double& operator()(size_t const& row, size_t const& col);
     double const& operator()(size_t const& row, size_t const& col) const;
     void operator+=(Polynomial const& p);
     void operator*=(double const& c);
     void operator*=(Polynomial const& p);
+    
     friend Polynomial operator*(Polynomial const& p1, double const& c);
     friend Polynomial operator*(Polynomial const& p1, Polynomial const& p2);
     friend Polynomial operator+(Polynomial const& p1, Polynomial const& p2);
     friend Polynomial operator-(Polynomial const& p1, Polynomial const& p2);
+    friend Polynomial substitute(size_t const& var, Polynomial const& src, Polynomial const& target);
+    friend double substitute(size_t const& var, double const& src, Polynomial const& target);
     
-    void substitute(size_t const& var, Polynomial const& src, Polynomial& dest);
-    void substitute(size_t const& var, double const& src, double& dest);
     Polynomial first_deriv(size_t const& var);
+    double get_element(std::pair<size_t, size_t> index);
+    void set_element(std::pair<size_t, size_t> index, const double& item);
     
 private:
     static std::regex make_regexp(std::string const& regexp);
@@ -52,12 +57,14 @@ private:
     static std::regex doubleton_exp_;
     static std::vector<size_t> starting_index_;
     size_t dim_;
-    std::vector<double> mat_;   // different from Matrix so don't equalize 'em
+    std::vector<double> terms_;   // works differently from Matrix so don't equalize 'em
 };
 
 Polynomial operator*(Polynomial const& p1, double const& c);
 Polynomial operator*(Polynomial const& p1, Polynomial const& p2);
 Polynomial operator+(Polynomial const& p1, Polynomial const& p2);
 Polynomial operator-(Polynomial const& p1, Polynomial const& p2);
+Polynomial substitute(size_t const& var, Polynomial const& src, Polynomial const& target);
+double substitute(size_t const& var, double const& src, Polynomial const& target);
 
 #endif /* polynomial_hpp */
