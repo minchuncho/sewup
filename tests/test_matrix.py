@@ -2,6 +2,7 @@
 
 import numpy as np
 import unittest
+import math
 
 import _solver
 
@@ -26,31 +27,30 @@ class MatrixTest(unittest.TestCase):
 		
 		self.assertEqual(naive, tile)
 
-	# def test_inverse(self):
-	# 	size = 3
-	# 	mat, rl = self.make_matrix(size)
+	def test_inverse(self):
+		size = 3
+		mat, rl = self.make_matrix(size)
 		
-	# 	inv = mat.inverse()
-	# 	for i in range(size):
-	# 		arr = []
-	# 		for j in range(size): 
-	# 			arr.append(mat[i, j])
+		my_inv = mat.inverse()
+		inv = np.linalg.inv(rl)
 
-	# 	self.assertEqual(arr, np.linalg.inv(rl))
+		for i in range(size):
+			for j in range(size): 
+				self.assertTrue(math.isclose(inv[i, j], my_inv[i, j]));
 
-	# def test_dfness(self):
-	# 	size = 3
+	def test_dfness(self):
+		size = 3
 
-	# 	rl1 = np.array([(2, -1, 0), (-1, 2, -1), (0, -1, 2)])
-	# 	rl2 = np.array([(-1, 1, -2), (1, -5, 2), (-2, 2, -5)])
-	# 	mat1 = self.make_matrix_arr(size, rl1)
-	# 	mat2 = self.make_matrix_arr(size, rl2)
+		rl1 = np.array([(2, -1, 0), (-1, 2, -1), (0, -1, 2)])
+		rl2 = np.array([(-1, 1, -2), (1, -5, 2), (-2, 2, -5)])
+		mat1 = self.make_matrix_arr(size, rl1)
+		mat2 = self.make_matrix_arr(size, rl2)
 
-	# 	dfness1 = np.all(np.linalg.eigvals(rl1) > 0) # positive dfness
-	# 	dfness2 = np.all(np.linalg.eigvals(rl2) < 0) # negative dfness
+		dfness1 = np.all(np.linalg.eigvals(rl1) > 0) # positive dfness
+		dfness2 = np.all(np.linalg.eigvals(rl2) < 0) # negative dfness
 
-	# 	self.assertEqual(dfness1, mat1.dfness(_solver.positive))
-	# 	self.assertEqual(dfness2, mat2.dfness(_solver.negative))
+		self.assertEqual(dfness1, mat1.dfness(_solver.positive))
+		self.assertEqual(dfness2, mat2.dfness(_solver.negative))
 
-# if __name__ == '__main__':
-# 	unittest.main()
+if __name__ == '__main__':
+	unittest.main()

@@ -137,9 +137,42 @@ std::string Matrix::get_matrix_str()
 
 Matrix Matrix::inverse()
 {
-    // todo: 求反矩陣
-    Matrix res(1,2);
-    return res;
+    if(this->row_ != this->col_){
+        throw std::out_of_range("only a square matrix can possibly have an inverse");
+    }
+    
+    double det = determinant(*this);
+    if(det == 0){
+        throw std::runtime_error("this is a singular matrix");
+    }
+    
+    size_t n = this->row_;
+    Matrix adj = this->adjoint(), inv(n, n);
+    for(size_t i=0; i<n; ++i){
+        for(size_t j=0; j<n; ++j){
+            inv(i, j) = adj(i, j)/det;
+        }
+    }
+    
+    return inv;
+}
+
+Matrix Matrix::cofactor(size_t p, size_t q) const
+{
+    size_t n = row_, m = n-1;
+    Matrix ret(m, m);
+    
+    size_t k=0;
+    for(size_t i=0; i<n; ++i){
+        for(size_t j=0; j<n; ++j){
+            if(i!=p && j!=q){
+                ret.vec_[k] = (*this)(i, j);
+                ++k;
+            }
+        }
+    }
+    
+    return ret;
 }
 
 Matrix Matrix::cholesky_decomposition()
@@ -212,6 +245,23 @@ bool Matrix::dfness(Dtype const& dtype)
     return true;
 }
 
+Matrix Matrix::adjoint()
+{
+    size_t n = this->row_;
+    Matrix ret(n ,n);
+    int sign = 1;
+    
+    for(size_t i=0; i<n; ++i){
+        for(size_t j=0; j<n; ++j){
+            sign = ((i+j)%2 == 0)? 1: -1;
+            Matrix cf = this->cofactor(i, j);
+            ret(j, i) = sign * determinant(cf); // put as transpose
+        }
+    }
+    
+    return ret;
+}
+
 std::ostream& operator<<(std::ostream& os, Matrix mat)
 {
     for(size_t i=0; i<mat.row_; ++i){
@@ -275,6 +325,26 @@ Matrix multiply_tile(Matrix const& mat1, Matrix const& mat2, size_t tsize)
                 }
             }
         }
+    }
+    
+    return ret;
+}
+
+double determinant(Matrix const& mat)
+{
+    size_t n = mat.row_;
+    
+    if(n == 1){
+        return mat(0, 0);
+    }
+    
+    double ret = 0;
+    int sign = 1;
+    
+    for(size_t i=0; i<n; ++i){
+        Matrix cf = mat.cofactor(0, i);
+        ret += (sign * mat(0, i) * determinant(cf));
+        sign *= (-1);
     }
     
     return ret;

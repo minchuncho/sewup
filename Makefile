@@ -21,7 +21,7 @@ all: $(OBJS)
 
 test: $(OBJS)
 # 	python3 -m pytest tests -v -s
-	python3 -m pytest tests
+	python3 -m pytest tests/test_matrix.py -v -s
 
 .PHONY: clean
 clean:

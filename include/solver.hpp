@@ -63,7 +63,7 @@ PYBIND11_MODULE(_solver, m) {
         .def("__setitem__", &Matrix::set_element)
         .def("__getitem__", &Matrix::get_element)
         .def("__repr__", &Matrix::get_matrix_str)
-        // .def("inverse", &Matrix::inverse)
+        .def("inverse", &Matrix::inverse)
         .def("dfness", &Matrix::dfness);
         
     m.def("multiply_naive", &multiply_naive);

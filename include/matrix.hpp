@@ -42,6 +42,7 @@ public:
     friend std::ostream& operator<<(std::ostream& os, Matrix mat);
     friend Matrix multiply_naive(Matrix const& ma, Matrix const& mb);
     friend Matrix multiply_tile(Matrix const& mat1, Matrix const& mat2, size_t tsize);
+    friend double determinant(Matrix const& mat);
 
     size_t nrow() const { return row_; }
     size_t ncol() const { return col_; }
@@ -56,6 +57,8 @@ private:
     bool bound_check(size_t const& i, size_t const& j);
     Matrix cholesky_decomposition();
     Matrix transpose();
+    Matrix cofactor(size_t p, size_t q) const;
+    Matrix adjoint();
 
     size_t row_;
     size_t col_;
@@ -65,5 +68,6 @@ private:
 std::ostream& operator<<(std::ostream& os, Matrix mat);
 Matrix multiply_naive(Matrix const& mat1, Matrix const& mat2);
 Matrix multiply_tile(Matrix const& mat1, Matrix const& mat2, size_t tsize);
+double determinant(Matrix const& mat);
 
 #endif /* matrix_hpp */
