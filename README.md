@@ -24,9 +24,9 @@ nf=2
 nl=2
 sv = _solver.Solver(nf, nl, _solver.cost, _solver.utility);   # initialize a solver with 2 followers and 2 leaders
 
-sv.follower[0] = "5x_1+6.7x_1x_2+7x_3+x_4x_4"                 # set up 1st follower's function
+sv.followers[0] = "5x_1+6.7x_1x_2+7x_3+x_4x_4"                 # set up 1st follower's function
 ...
-sv.leader[0] = "x_1x_3+5.5x_3x_3+x_1x_1"                      # set up 1st leader's function
+sv.leaders[0] = "x_1x_3+5.5x_3x_3+x_1x_1"                      # set up 1st leader's function
 ...
 
 sv.solve_followers();
@@ -40,5 +40,6 @@ Solver(size_t nf, size_t nl, Ftype f_ftype, Ftype l_ftype)
 ```
 - `nf`: number of followers
 - `nl`: number of leaders
-- `f_ftype`: the function type for followers, either `cost` or `utility`
-- `l_ftype`: the function type for leaders, either `cost` or `utility`
+- `f_ftype`: the function type for followers, either `_solver.cost` or `_solver.utility`
+- `l_ftype`: the function type for leaders, either `_solver.cost` or `_solver.utility`
+  - `_solver.cost` and `_solver.utility` belong to `enum Ftype`
