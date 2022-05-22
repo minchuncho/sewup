@@ -18,12 +18,13 @@ jobs:
     - name: dependency
       run: |
         brew update
-        brew install \
-            wget make cmake libccd \
-            python3 python3-pip python3-pytest \
-            python3-numpy python3-scipy python3-pandas python3-matplotlib \
-            jupyterlab
-        pip install pytest-faulthandler
+        brew install wget make cmake libccd python3
+        
+        python -m ensurepip --upgrade
+        python get-pip.py
+        
+        pip install pytest numpy scipy pandas matplotlib pytest-faulthandler
+        
         cd /usr/local/bin ; sudo ln -sf py.test-
 
     - name: make
