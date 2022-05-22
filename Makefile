@@ -3,16 +3,10 @@ PY_IDIR = $(shell python3-config --includes)
 PY_EXTS = $(shell python3-config --extension-suffix)
 SDIR = src
 
-# ubuntu
-CFLAGS = -O3 -Wall -shared -std=c++17 -fPIC
-PYBIND = -Iextern/pybind11/include -lpython3.8
-OBJS = $(shell find src -name '*.cpp')
-
 # osx
-# CFLAGS = -O3 -Wall -shared -std=c++17 -fPIC -undefined dynamic_lookup
-# # PYBIND = -I/usr/local/include/pybind11
-# PYBIND = -Iextern/pybind11/include
-# OBJS = $(shell find src -name '*.cpp')
+CFLAGS = -O3 -Wall -shared -std=c++17 -fPIC -undefined dynamic_lookup
+PYBIND = -Iextern/pybind11/include
+OBJS = $(shell find src -name '*.cpp')
 
 EXEC = _solver
 
