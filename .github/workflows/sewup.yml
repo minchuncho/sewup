@@ -23,7 +23,11 @@ jobs:
         python3 -m ensurepip --upgrade
         python3 get-pip.py
         
-        pip3 install pytest numpy scipy pandas matplotlib pytest-faulthandler
+        pip3 install pytest numpy scipy pandas matplotlib pytest-faulthandler mpmath
+        
+        git clone https://github.com/sympy/sympy.git
+        cd sympy
+        python3 setupegg.py develop
         
         cd /usr/local/bin ; sudo ln -sf py.test-
 

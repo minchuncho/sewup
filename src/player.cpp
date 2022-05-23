@@ -11,10 +11,10 @@ Player::Player(size_t dim, size_t nvar)
     : func_(dim), psol_(dim), hessian_(nvar, nvar) {}
 
 Player::Player(Player const& other)
-    : var_(other.var_), func_(other.func_), psol_(other.psol_), hessian_(other.hessian_), first_derivs_(other.first_derivs_), dfness_(other.dfness_), sol_(other.sol_) {}
+    : var_(other.var_), sol_(other.sol_), dfness_(other.dfness_), func_(other.func_), psol_(other.psol_), hessian_(other.hessian_), first_derivs_(other.first_derivs_) {}
 
 Player::Player(Player && other)
-    : var_(std::move(other.var_)), func_(std::move(other.func_)), psol_(std::move(other.psol_)), hessian_(std::move(other.hessian_)), first_derivs_(std::move(other.first_derivs_)), dfness_(std::move(other.dfness_)), sol_(std::move(other.sol_)) {}
+    : var_(std::move(other.var_)), sol_(std::move(other.sol_)), dfness_(std::move(other.dfness_)), func_(std::move(other.func_)), psol_(std::move(other.psol_)), hessian_(std::move(other.hessian_)), first_derivs_(std::move(other.first_derivs_)) {}
 
 Player& Player::operator=(Player const& other)
 {

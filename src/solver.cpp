@@ -9,9 +9,9 @@
 
 Solver::Solver(size_t nf, size_t nl, Ftype f_ftype, Ftype l_ftype)
     : nf_(nf), nl_(nl), f_ftype_(f_ftype), l_ftype_(l_ftype),
+        followers_(nf, Player(nf+nl+1, nf)), leaders_(nl, Player(nf+nl+1, nl)),
         f_eq_system_(nf, nf), f_const_system_(nf, Polynomial(nf+nl+1)),
-        l_eq_system_(nl, nl), l_const_system_(nl, 0),
-        followers_(nf, Player(nf+nl+1, nf)), leaders_(nl, Player(nf+nl+1, nl))
+        l_eq_system_(nl, nl), l_const_system_(nl, 0)
 {
     size_t cnt = 1;
     for(int i=0; i<nf_; ++i){
@@ -26,15 +26,15 @@ Solver::Solver(size_t nf, size_t nl, Ftype f_ftype, Ftype l_ftype)
 
 Solver::Solver(Solver const& other)
     : nf_(other.nf_), nl_(other.nl_), f_ftype_(other.f_ftype_), l_ftype_(other.l_ftype_),
+    followers_(other.followers_), leaders_(other.leaders_),
         f_eq_system_(other.f_eq_system_), f_const_system_(other.f_const_system_),
-        l_eq_system_(other.l_eq_system_), l_const_system_(other.l_const_system_),
-        followers_(other.followers_), leaders_(other.leaders_) {}
+        l_eq_system_(other.l_eq_system_), l_const_system_(other.l_const_system_) {}
 
 Solver::Solver(Solver && other)
     : nf_(std::move(other.nf_)), nl_(std::move(other.nl_)), f_ftype_(std::move(other.f_ftype_)), l_ftype_(std::move(other.l_ftype_)),
+        followers_(std::move(other.followers_)), leaders_(std::move(other.leaders_)),
         f_eq_system_(std::move(other.f_eq_system_)), f_const_system_(std::move(other.f_const_system_)),
-        l_eq_system_(std::move(other.l_eq_system_)), l_const_system_(std::move(other.l_const_system_)),
-        followers_(std::move(other.followers_)), leaders_(std::move(other.leaders_)) {}
+        l_eq_system_(std::move(other.l_eq_system_)), l_const_system_(std::move(other.l_const_system_)) {}
 
 Solver& Solver::operator=(Solver const& other)
 {
@@ -85,14 +85,14 @@ void Solver::solve_followers()
             f_eq_system_(i, j-1) = fderiv(0, j);
             f_eq_system_(i, j-1) = 0;
         }
-        f_const_system_.emplace_back(fderiv*(-1.0));
+        f_const_system_.emplace_back(multiply_const(fderiv, -1.0));
     }
     
     Matrix inv = f_eq_system_.inverse();
     for(int i=0; i<nf_; ++i){
         Polynomial v(nf_+nl_+1);
         for(int j=0; j<nf_; ++j){
-            v +=  f_const_system_[j] * inv(i, j);
+            v +=  multiply_const(f_const_system_[j], inv(i, j));
         }
         followers_[i].psol() = v;
     }

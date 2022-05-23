@@ -46,10 +46,10 @@ private:
     void hessian_mat_dfness();
     
     size_t var_;
-    Polynomial func_;
-    Polynomial psol_;
     double sol_;
     Dtype dfness_;
+    Polynomial func_;
+    Polynomial psol_;
     Matrix hessian_;
     std::map<size_t, Polynomial> first_derivs_;
 };

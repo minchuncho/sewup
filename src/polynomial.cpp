@@ -7,10 +7,10 @@
 
 #include "polynomial.hpp"
 
-std::regex Polynomial::token_exp_ = make_regexp("-?(([0-9]*[.])?[0-9]+)?((x|y)_([1-9][0-9]*))?((x|y)_([1-9][0-9]*))?");
+std::regex Polynomial::token_exp_ = make_regexp("-?(([0-9]*[.])?[0-9]+)?((x)_([1-9][0-9]*))?((x)_([1-9][0-9]*))?");
 std::regex Polynomial::int_exp_ = make_regexp("[1-9][0-9]*");
-std::regex Polynomial::singleton_exp_ = make_regexp("(x|y)_([1-9][0-9]*)");
-std::regex Polynomial::doubleton_exp_ = make_regexp("(x|y)_([1-9][0-9]*)(x|y)_([1-9][0-9]*)?");
+std::regex Polynomial::singleton_exp_ = make_regexp("(x)_([1-9][0-9]*)");
+std::regex Polynomial::doubleton_exp_ = make_regexp("(x)_([1-9][0-9]*)(x)_([1-9][0-9]*)?");
 std::vector<size_t> Polynomial::starting_index_ = make_starting_index();
 
 Polynomial::Polynomial(size_t const& dim)
@@ -48,12 +48,10 @@ Polynomial& Polynomial::operator=(Polynomial&& other)
     return *this;
 }
 
-Polynomial& Polynomial::operator=(std::string const& func)
+void Polynomial::operator=(std::string const& func)
 {
     std::vector<std::string> tokens = get_tokens(func);
     analyze_tokens(tokens);
-    
-    return *this;
 }
 
 double& Polynomial::operator()(size_t const& row, size_t const& col)
@@ -78,14 +76,18 @@ double const& Polynomial::operator()(size_t const& row, size_t const& col) const
 
 void Polynomial::operator+=(Polynomial const& p)
 {
-    (*this) = (*this) + p;
+    for(int i=0; i<dim_; ++i){
+        for(int j=0; j<dim_; ++j){
+            (*this)(i, j) += p(i, j);
+        }
+    }
 }
 
 void Polynomial::operator*=(double const& c)
 {
     for(int i=0; i<dim_; ++i){
         for(int j=0; j<dim_; ++j){
-            (*this)(i, j) = (*this)(i, j)*c;
+            (*this)(i, j) = (*this)(i, j) * c;
         }
     }
 }
@@ -101,6 +103,20 @@ void Polynomial::operator*=(Polynomial const& p)
             (*this)(i, j) += (*this)(0, i) * p(0, j);
         }
     }
+}
+
+bool Polynomial::operator==(Polynomial const& p) const
+{
+    size_t n = dim_;
+    if(n != p.dim_) return false;
+    
+    for(int i=0; i<n; ++i){
+        for(int j=i; j<n; ++j){
+            if((*this)(i, j) != p(i, j)) return false;
+        }
+    }
+
+    return true;
 }
 
 std::regex Polynomial::make_regexp(std::string const& regexp)
@@ -178,6 +194,62 @@ void Polynomial::analyze_tokens(std::vector<std::string>& tokens)
     }
 }
 
+Polynomial Polynomial::first_deriv(size_t const& var)
+{
+    Polynomial p(dim_);
+    for(size_t i=0; i<var; ++i){
+        p(0, i) += (*this)(var, i);
+    }
+    for(size_t i=var+1; i<dim_; ++i){
+        p(0, i) += (*this)(i, var);
+    }
+    p(0, var) = 2*(*this)(var, var);
+    
+    return p;
+}
+
+double Polynomial::get_element(std::pair<size_t, size_t> index)
+{
+    return (*this)(index.first, index.second);
+}
+
+void Polynomial::set_element(std::pair<size_t, size_t> index, const double& item)
+{
+    (*this)(index.first, index.second) = item;
+}
+
+std::string Polynomial::get_sympy_str()
+{
+    std::string str = "";
+
+    for(size_t i=0; i<dim_; ++i){
+        for(size_t j=i; j<dim_; ++j){
+            double v = (*this)(i, j);
+            
+            if(v == 0) continue;
+            
+            if(v > 0 && !str.empty()) str += '+';
+
+            if(i == 0){
+                if(j == 0){
+                    str += std::to_string(v);
+                }
+                else{
+                    std::string term_str = "x"+std::to_string(j);
+                    str += std::to_string(v) + '*' + term_str;
+                }
+            }
+            else{
+                std::string term_str = "x"+std::to_string(i)+"*x"+std::to_string(j);
+                str += std::to_string(v) + '*' + term_str;
+            }
+        }
+    }
+
+    return str;
+}
+
+/* free functions */
 Polynomial substitute(size_t const& var, Polynomial const& src, Polynomial const& target)
 {
     size_t dim = target.dim_;
@@ -189,7 +261,7 @@ Polynomial substitute(size_t const& var, Polynomial const& src, Polynomial const
         if(v != 0){
             Polynomial p(dim);
             p(i, 0) = v;
-            p = p*src;
+            p *= src;
             polys.emplace_back(p);
         }
     }
@@ -199,7 +271,7 @@ Polynomial substitute(size_t const& var, Polynomial const& src, Polynomial const
         if(v != 0){
             Polynomial p(dim);
             p(0, i) = v;
-            p = p*src;
+            p *= src;
             polys.emplace_back(p);
         }
     }
@@ -208,7 +280,7 @@ Polynomial substitute(size_t const& var, Polynomial const& src, Polynomial const
     
     if(v != 0){
         Polynomial p(dim);
-        p = v*src*src;
+        p = multiply_const(multiply_poly(src, src), v);
         polys.emplace_back(p);
     }
     
@@ -246,32 +318,7 @@ double substitute(size_t const& var, double const& src, Polynomial const& target
     return ret;
 }
 
-Polynomial Polynomial::first_deriv(size_t const& var)
-{
-    Polynomial p(dim_);
-    for(size_t i=0; i<var; ++i){
-        p(0, i) += (*this)(var, i);
-    }
-    for(size_t i=var+1; i<dim_; ++i){
-        p(0, i) += (*this)(i, var);
-    }
-    p(0, var) = 2*(*this)(var, var);
-    
-    return p;
-}
-
-double Polynomial::get_element(std::pair<size_t, size_t> index)
-{
-    return (*this)(index.first, index.second);
-}
-
-void Polynomial::set_element(std::pair<size_t, size_t> index, const double& item)
-{
-    (*this)(index.first, index.second) = item;
-}
-
-/* stand-alone operator overloading */
-Polynomial operator*(Polynomial const& p1, double const& c)
+Polynomial multiply_const(Polynomial const& p1, double const& c)
 {
     Polynomial p(p1);
     for(int i=0; i<p.dim_; ++i){
@@ -283,7 +330,7 @@ Polynomial operator*(Polynomial const& p1, double const& c)
     return p;
 }
 
-Polynomial operator*(Polynomial const& p1, Polynomial const& p2)
+Polynomial multiply_poly(Polynomial const& p1, Polynomial const& p2)
 {
     size_t n = p1.dim_;
     if(n != p2.dim_) throw std::out_of_range("function dimensions are different");
@@ -298,7 +345,7 @@ Polynomial operator*(Polynomial const& p1, Polynomial const& p2)
     return ret;
 }
 
-Polynomial operator+(Polynomial const& p1, Polynomial const& p2)
+Polynomial add(Polynomial const& p1, Polynomial const& p2)
 {
     size_t n = p1.dim_;
     if(n != p2.dim_) throw std::out_of_range("function dimensions are different");
@@ -313,7 +360,7 @@ Polynomial operator+(Polynomial const& p1, Polynomial const& p2)
     return ret;
 }
 
-Polynomial operator-(Polynomial const& p1, Polynomial const& p2)
+Polynomial substract(Polynomial const& p1, Polynomial const& p2)
 {
     size_t n = p1.dim_;
     if(n != p2.dim_) throw std::out_of_range("function dimensions are different");
