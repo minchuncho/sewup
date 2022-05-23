@@ -177,6 +177,7 @@ void Polynomial::analyze_tokens(std::vector<std::string>& tokens)
             size_t cnt = 0, index[2];
             while(std::regex_search(term, sm2, int_exp_)){
                 index[cnt]=std::stoi(sm2.str());
+                term = sm2.suffix();
                 ++cnt;
             }
             (*this)(index[0], index[1]) = std::stod(sm.prefix().str());
