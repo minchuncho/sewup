@@ -59,7 +59,7 @@ class PolynomialTest(unittest.TestCase):
 			poly = self.make_polynomial(dim, func_str5)
 
 	# functions of different dimensions cannot work together
-	def test_dim_unmatch(self):
+	def test_dimension(self):
 		func_str = "4*x1+5*x1x2+6*x2x3"
 		dim1 = 4
 		dim2 = 6
