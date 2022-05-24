@@ -14,8 +14,8 @@ all: $(OBJS)
 	$(CC) $(CFLAGS) $(PY_IDIR) $(PYBIND) -Iinclude $(OBJS) -o $(EXEC)$(PY_EXTS)
 
 test: $(OBJS)
-# 	python3 -m pytest tests -v -s
-	python3 -m pytest tests/test_matrix.py -v -s
+	python3 -m pytest tests -v -s
+# 	python3 -m pytest tests/test_polynomial.py -v -s
 
 .PHONY: clean
 clean:
