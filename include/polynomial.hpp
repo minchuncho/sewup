@@ -63,7 +63,7 @@ private:
     std::vector<double> terms_;   // works differently from Matrix so don't equalize 'em
 };
 
-Polynomial multiply_const(Polynomial const& p1, double const& c);
+Polynomial multiply_const(Polynomial const& p, double const& c);
 Polynomial multiply_poly(Polynomial const& p1, Polynomial const& p2);
 Polynomial add(Polynomial const& p1, Polynomial const& p2);
 Polynomial substract(Polynomial const& p1, Polynomial const& p2);

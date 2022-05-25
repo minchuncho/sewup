@@ -75,68 +75,68 @@ class PolynomialTest(unittest.TestCase):
 		with self.assertRaises(IndexError):
 			ret = _solver.substract(poly1, poly2);
 			
-	# def test_multiplication(self):
+	def test_multiplication(self):
+		dim = 5
+		func_str1 = "0.4*x1+5*x1+0.86*x3"
+		func_str2 = "0.2+0.7*x3+0.01*x1"
+		c = 0.5;
+
+		poly1 = self.make_polynomial(dim, func_str1)
+		poly2 = self.make_polynomial(dim, func_str2)
+
+		sb = self.make_symbols(dim);
+		expr1 = 0.4*sb[1]+5*sb[1]+0.86*sb[3];
+		expr2 = 0.2+0.7*sb[3]+0.01*sb[1];
+		
+		ret = _solver.multiply_poly(poly1, poly2);
+		ans_poly = sp.expand(self.make_sympy_exp(ret, sb))
+		ans_sp = sp.expand(expr1 * expr2);
+		
+		self.assertTrue(sp.simplify(ans_poly - ans_sp) == 0);
+
+		ret = _solver.multiply_const(poly2, c);
+		ans_poly = sp.expand(self.make_sympy_exp(ret, sb))
+		ans_sp = sp.expand(expr2 * c);
+		
+		self.assertTrue(sp.simplify(ans_poly - ans_sp) == 0);
+
+	# def test_addition(self):
 	# 	dim = 5
-	# 	func_str1 = "0.4x_1+5x_1+0.86x_3"
-	# 	func_str2 = "0.2+0.7x_3+0.01x_1"
+	# 	func_str1 = "0.4*x1x3+5*x1x2+0.86*x3x3"
+	# 	func_str2 = "0.2+0.7*x3x4+0.01*x3x1"
 	# 	c = 0.5;
 
 	# 	poly1 = self.make_polynomial(dim, func_str1)
 	# 	poly2 = self.make_polynomial(dim, func_str2)
 
 	# 	sb = self.make_symbols(dim);
-	# 	expr1 = 0.4*sb[1]+5*sb[1]+0.86*sb[3];
-	# 	expr2 = 0.2+0.7*sb[3]+0.01*sb[1];
+	# 	expr1 = 0.4*sb[1]*sb[3]+5*sb[1]*sb[2]+0.86*sb[3]**2;
+	# 	expr2 = 0.2+0.7*sb[3]*sb[4]+0.01*sb[3]*sb[1];
 		
-	# 	ret = _solver.multiply_poly(poly1, poly2);
+	# 	ret = _solver.add(poly1, poly2);
 	# 	ans_poly = sp.expand(self.make_sympy_exp(ret, sb))
-	# 	ans_sp = sp.expand(expr1 * expr2);
+	# 	ans_sp = sp.expand(expr1 + expr2);
 		
-	# 	self.assertEqual(ans_poly, ans_sp);
+	# 	self.assertTrue(sp.simplify(ans_poly - ans_sp) == 0);
+		
+	# def test_substraction(self):
+	# 	dim = 5
+	# 	func_str1 = "0.4*x1x3+5*x1x2+0.86*x3x3"
+	# 	func_str2 = "0.2+0.7*x3x4+0.01*x3x1"
+	# 	c = 0.5;
 
-	# 	ret = _solver.multiply_const(poly2, c);
+	# 	poly1 = self.make_polynomial(dim, func_str1)
+	# 	poly2 = self.make_polynomial(dim, func_str2)
+
+	# 	sb = self.make_symbols(dim);
+	# 	expr1 = 0.4*sb[1]*sb[3]+5*sb[1]*sb[2]+0.86*sb[3]**2;
+	# 	expr2 = 0.2+0.7*sb[3]*sb[4]+0.01*sb[3]*sb[1];
+		
+	# 	ret = _solver.substract(poly1, poly2);
 	# 	ans_poly = sp.expand(self.make_sympy_exp(ret, sb))
-	# 	ans_sp = sp.expand(expr2 * c);
+	# 	ans_sp = sp.expand(expr1 - expr2);
 		
-	# 	self.assertEqual(ans_poly, ans_sp);
-
-	def test_addition(self):
-		dim = 5
-		func_str1 = "0.4*x1x3+5*x1x2+0.86*x3x3"
-		func_str2 = "0.2+0.7*x3x4+0.01*x3x1"
-		c = 0.5;
-
-		poly1 = self.make_polynomial(dim, func_str1)
-		poly2 = self.make_polynomial(dim, func_str2)
-
-		sb = self.make_symbols(dim);
-		expr1 = 0.4*sb[1]*sb[3]+5*sb[1]*sb[2]+0.86*sb[3]**2;
-		expr2 = 0.2+0.7*sb[3]*sb[4]+0.01*sb[3]*sb[1];
-		
-		ret = _solver.add(poly1, poly2);
-		ans_poly = sp.expand(self.make_sympy_exp(ret, sb))
-		ans_sp = sp.expand(expr1 + expr2);
-		
-		self.assertTrue(sp.simplify(ans_poly - ans_sp) == 0);
-		
-	def test_substraction(self):
-		dim = 5
-		func_str1 = "0.4*x1x3+5*x1x2+0.86*x3x3"
-		func_str2 = "0.2+0.7*x3x4+0.01*x3x1"
-		c = 0.5;
-
-		poly1 = self.make_polynomial(dim, func_str1)
-		poly2 = self.make_polynomial(dim, func_str2)
-
-		sb = self.make_symbols(dim);
-		expr1 = 0.4*sb[1]*sb[3]+5*sb[1]*sb[2]+0.86*sb[3]**2;
-		expr2 = 0.2+0.7*sb[3]*sb[4]+0.01*sb[3]*sb[1];
-		
-		ret = _solver.substract(poly1, poly2);
-		ans_poly = sp.expand(self.make_sympy_exp(ret, sb))
-		ans_sp = sp.expand(expr1 - expr2);
-		
-		self.assertTrue(sp.simplify(ans_poly - ans_sp) == 0);
+	# 	self.assertTrue(sp.simplify(ans_poly - ans_sp) == 0);
 		
 	# def test_substitution(self):
 	# 	dim = 5

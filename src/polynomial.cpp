@@ -91,8 +91,8 @@ void Polynomial::operator-=(Polynomial const& p)
 void Polynomial::operator*=(double const& c)
 {
     for(int i=0; i<dim_; ++i){
-        for(int j=0; j<dim_; ++j){
-            (*this)(i, j) = (*this)(i, j) * c;
+        for(int j=i; j<dim_; ++j){
+            (*this)(i, j) *= c;
         }
     }
 }
@@ -101,11 +101,12 @@ void Polynomial::operator*=(Polynomial const& p)
 {
     size_t n = dim_;
     if(n != p.dim_) throw std::out_of_range("function dimensions are different");
-    
+
     Polynomial ret(n);
+
     for(int i=0; i<n; ++i){
         for(int j=0; j<n; ++j){
-            (*this)(i, j) += (*this)(0, i) * p(0, j);
+            ret(i, j) += (*this)(0, i) * p(0, j);
         }
     }
 }
@@ -206,8 +207,8 @@ void Polynomial::analyze_tokens(std::vector<std::string>& tokens)
         if(!tk.empty()) indices.emplace_back(std::stoi(tk));
         
         size_t n = indices.size();
-        if(n == 1) (*this)(0, indices[0]) = cof;
-        else if(n == 2) (*this)(indices[0], indices[1]) = cof;
+        if(n == 1) (*this)(0, indices[0]) += cof;
+        else if(n == 2) (*this)(indices[0], indices[1]) += cof;
         else throw std::invalid_argument("wrong format of function");
     }
 }
@@ -336,16 +337,12 @@ double substitute(size_t const& var, double const& src, Polynomial const& target
     return ret;
 }
 
-Polynomial multiply_const(Polynomial const& p1, double const& c)
+Polynomial multiply_const(Polynomial const& p, double const& c)
 {
-    Polynomial p(p1);
-    for(int i=0; i<p.dim_; ++i){
-        for(int j=0; j<p.dim_; ++j){
-            p(i, j) = p(i, j)*c;
-        }
-    }
+    Polynomial ret(p);
+    ret *= c;
     
-    return p;
+    return ret;
 }
 
 Polynomial multiply_poly(Polynomial const& p1, Polynomial const& p2)
