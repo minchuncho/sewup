@@ -85,12 +85,12 @@ PYBIND11_MODULE(_solver, m) {
         .def("__repr__", &Polynomial::get_sympy_str)
         .def("first_deriv", &Polynomial::first_deriv);
         
-    m.def("multiply_const", &multiply_const);
-    m.def("multiply_poly", &multiply_poly);
+    m.def("multiply", static_cast<Polynomial (*)(Polynomial const&, Polynomial const&)>(&multiply));
+    m.def("multiply", static_cast<Polynomial (*)(Polynomial const&, double const&)>(&multiply));
     m.def("add", &add);
     m.def("substract", &substract);
     m.def("substitute", static_cast<Polynomial (*)(size_t const&, Polynomial const&, Polynomial const&)>(&substitute));
-    m.def("substitute", static_cast<double (*)(size_t const&, double const&, Polynomial const&)>(&substitute));
+    m.def("substitute", static_cast<Polynomial (*)(size_t const&, double const&, Polynomial const&)>(&substitute));
 };
 
 #endif /* solver_hpp */

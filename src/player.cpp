@@ -69,8 +69,9 @@ void Player::calc_hessian_mat(size_t var_s, size_t var_e, Role role)
         if(first_derivs_.find(i) == first_derivs_.end()){
             first_derivs_.at(i) = ptr->first_deriv(i);
         }
+        Polynomial tmp = first_derivs_.at(i);
         for(size_t j=var_s; j<=var_e; ++j){
-            hessian_(i-var_s, j-var_s) += first_derivs_.at(i).first_deriv(j)(0, 0);
+            hessian_(i-var_s, j-var_s) = tmp.first_deriv(j)(0, 0);
         }
     }
 }

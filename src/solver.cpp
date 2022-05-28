@@ -128,14 +128,12 @@ void Solver::solve_leaders()
 
 void Solver::substitute_to_followers()
 {
-    // try to substitute "p1+p2+4p3" where p1 p2 p3 are already double (not polynomial)
-    
     for(int i=0; i<nf_; ++i){
-        double res=0;
+        Polynomial ret(nf_+nl_+1);
         for(int j=0; j<nl_; ++j){
-            res += substitute(followers_[j].var(), leaders_[j].sol(), followers_[i].psol());
+            ret += substitute(followers_[j].var(), leaders_[j].sol(), followers_[i].psol());
         }
-        followers_[i].sol() = res;
+        followers_[i].sol() = ret(0, 0);
     }
 }
 

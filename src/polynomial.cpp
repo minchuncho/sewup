@@ -109,6 +109,8 @@ void Polynomial::operator*=(Polynomial const& p)
             ret(i, j) += (*this)(0, i) * p(0, j);
         }
     }
+
+    (*this) = ret;
 }
 
 bool Polynomial::operator==(Polynomial const& p) const
@@ -271,73 +273,75 @@ std::string Polynomial::get_sympy_str()
 /* free functions */
 Polynomial substitute(size_t const& var, Polynomial const& src, Polynomial const& target)
 {
-    size_t dim = target.dim_;
-    std::vector<Polynomial> polys;
-    Polynomial ret(dim);
+    size_t n = target.dim_;
+    Polynomial ret(n), dup(target);
     
-    for(size_t i=0; i<var-1; ++i){
+    for(size_t i=0; i<var; ++i){
         double v = target(i, var);
         if(v != 0){
-            Polynomial p(dim);
-            p(i, 0) = v;
-            p *= src;
-            polys.emplace_back(p);
+            dup(i, var) = 0;
+            ret(0, i) += v;
         }
     }
     
-    for(size_t i=var+1; i<dim; ++i){
+    for(size_t i=var+1; i<n; ++i){
         double v = target(var, i);
         if(v != 0){
-            Polynomial p(dim);
-            p(0, i) = v;
-            p *= src;
-            polys.emplace_back(p);
+            dup(i, var) = 0;
+            ret(0, i) += v;
         }
     }
+    
+    ret *= src;
     
     double v = target(var, var);
     
     if(v != 0){
-        Polynomial p(dim);
-        p = multiply_const(multiply_poly(src, src), v);
-        polys.emplace_back(p);
+        dup(var, var) = 0;
+        ret += multiply_const(multiply_poly(src, src), v);
     }
-    
-    for(auto const& p: polys){
-        ret += p;
-    }
-    
+
+    ret += dup;
+
     return ret;
 }
 
-double substitute(size_t const& var, double const& src, Polynomial const& target)
+Polynomial substitute(size_t const& var, double const& src, Polynomial const& target)
 {
-    double ret = 0;
+    size_t n = target.dim_;
+    Polynomial ret(n), dup(target);
     
-    for(size_t i=0; i<var-1; ++i){
+    for(size_t i=0; i<var; ++i){
         double v = target(i, var);
         if(v != 0){
-            ret += v*src;
+            dup(i, var) = 0;
+            ret(0, i) += v;
         }
     }
     
-    for(size_t i=var+1; i<target.dim_; ++i){
+    for(size_t i=var+1; i<n; ++i){
         double v = target(var, i);
         if(v != 0){
-            ret += v*src;
+            dup(i, var) = 0;
+            ret(0, i) += v;
         }
     }
+    
+    ret *= src;
     
     double v = target(var, var);
     
     if(v != 0){
-        ret += v*src*src;
+        dup(var, var) = 0;
+        ret(0, 0) = src * src * v;
     }
-    
+
+    ret += dup;
+
     return ret;
 }
 
-Polynomial multiply_const(Polynomial const& p, double const& c)
+Polynomial multiply(Polynomial const& p, double const& c)
 {
     Polynomial ret(p);
     ret *= c;
@@ -345,7 +349,7 @@ Polynomial multiply_const(Polynomial const& p, double const& c)
     return ret;
 }
 
-Polynomial multiply_poly(Polynomial const& p1, Polynomial const& p2)
+Polynomial multiply(Polynomial const& p1, Polynomial const& p2)
 {
     size_t n = p1.dim_;
     if(n != p2.dim_) throw std::out_of_range("function dimensions are different");
