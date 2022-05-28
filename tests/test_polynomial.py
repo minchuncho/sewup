@@ -67,7 +67,7 @@ class PolynomialTest(unittest.TestCase):
 		poly2 = self.make_polynomial(dim2, func_str)
 		
 		with self.assertRaises(IndexError):
-			ret = _solver.multiply_poly(poly1, poly2);
+			ret = _solver.multiply(poly1, poly2);
 
 		with self.assertRaises(IndexError):
 			ret = _solver.add(poly1, poly2);

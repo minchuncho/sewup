@@ -85,14 +85,14 @@ void Solver::solve_followers()
             f_eq_system_(i, j-1) = fderiv(0, j);
             f_eq_system_(i, j-1) = 0;
         }
-        f_const_system_.emplace_back(multiply_const(fderiv, -1.0));
+        f_const_system_.emplace_back(multiply(fderiv, -1.0));
     }
     
     Matrix inv = f_eq_system_.inverse();
     for(int i=0; i<nf_; ++i){
         Polynomial v(nf_+nl_+1);
         for(int j=0; j<nf_; ++j){
-            v +=  multiply_const(f_const_system_[j], inv(i, j));
+            v +=  multiply(f_const_system_[j], inv(i, j));
         }
         followers_[i].psol() = v;
     }

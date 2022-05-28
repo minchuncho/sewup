@@ -298,7 +298,7 @@ Polynomial substitute(size_t const& var, Polynomial const& src, Polynomial const
     
     if(v != 0){
         dup(var, var) = 0;
-        ret += multiply_const(multiply_poly(src, src), v);
+        ret += multiply(multiply(src, src), v);
     }
 
     ret += dup;
