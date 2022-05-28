@@ -10,6 +10,7 @@ Formally speaking, a competition can be formlated into a multi-variable optimiza
 Before installing, make sure the following **dependencies** are also installed:
 + python 3 or above
 + pybind11
++ sympy
 
 **Install SewUP** by entering the following commands:
 ```sh
