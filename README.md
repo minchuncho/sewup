@@ -26,9 +26,9 @@ nf=2
 nl=2
 sv = _solver.Solver(nf, nl, _solver.cost, _solver.utility);   # initialize a solver with 2 followers and 2 leaders
 
-sv.followers(0) = "5*x1+6.7*x1x2+7*x3+x4x4"                 # set up 1st follower's function
+sv.follower(0) = "5*x1+6.7*x1x2+7*x3+x4x4"                 # set up 1st follower's function
 ...
-sv.leaders(0) = "x1x3+5.5*x3x3+x1x1"                      # set up 1st leader's function
+sv.leader(0) = "x1x3+5.5*x3x3+x1x1"                      # set up 1st leader's function
 ...
 
 sv.solve_followers();
