@@ -5,11 +5,11 @@ import sympy as sp
 import unittest
 import math
 
-import _solver
+import _sewup
 
 class PolynomialTest(unittest.TestCase):
 	def make_polynomial(self, dim, func_str):
-		poly = _solver.Polynomial(dim, func_str)
+		poly = _sewup.Polynomial(dim, func_str)
 		return poly
 
 	def make_symbols(self, dim):
@@ -67,13 +67,13 @@ class PolynomialTest(unittest.TestCase):
 		poly2 = self.make_polynomial(dim2, func_str)
 		
 		with self.assertRaises(IndexError):
-			ret = _solver.multiply(poly1, poly2);
+			ret = _sewup.multiply(poly1, poly2);
 
 		with self.assertRaises(IndexError):
-			ret = _solver.add(poly1, poly2);
+			ret = _sewup.add(poly1, poly2);
 
 		with self.assertRaises(IndexError):
-			ret = _solver.substract(poly1, poly2);
+			ret = _sewup.substract(poly1, poly2);
 			
 	def test_multiplication(self):
 		dim = 5
@@ -88,13 +88,13 @@ class PolynomialTest(unittest.TestCase):
 		expr1 = 0.4*sb[1]+5*sb[1]+0.86*sb[3];
 		expr2 = 0.2+0.7*sb[3]+0.01*sb[1];
 		
-		ret = _solver.multiply(poly1, poly2);
+		ret = _sewup.multiply(poly1, poly2);
 		ans_poly = sp.expand(self.make_sympy_exp(ret, sb))
 		ans_sp = sp.expand(expr1 * expr2);
 		
 		self.assertTrue(sp.simplify(ans_poly - ans_sp) == 0);
 
-		ret = _solver.multiply(poly2, c);
+		ret = _sewup.multiply(poly2, c);
 		ans_poly = sp.expand(self.make_sympy_exp(ret, sb))
 		ans_sp = sp.expand(expr2 * c);
 		
@@ -113,7 +113,7 @@ class PolynomialTest(unittest.TestCase):
 		expr1 = 0.4*sb[1]*sb[3]+5*sb[1]*sb[2]+0.86*sb[3]**2;
 		expr2 = 0.2+0.7*sb[3]*sb[4]+0.01*sb[3]*sb[1];
 		
-		ret = _solver.add(poly1, poly2);
+		ret = _sewup.add(poly1, poly2);
 		ans_poly = sp.expand(self.make_sympy_exp(ret, sb))
 		ans_sp = sp.expand(expr1 + expr2);
 		
@@ -132,7 +132,7 @@ class PolynomialTest(unittest.TestCase):
 		expr1 = 0.4*sb[1]*sb[3]+5*sb[1]*sb[2]+0.86*sb[3]**2;
 		expr2 = 0.2+0.7*sb[3]*sb[4]+0.01*sb[3]*sb[1];
 		
-		ret = _solver.substract(poly1, poly2);
+		ret = _sewup.substract(poly1, poly2);
 		ans_poly = sp.expand(self.make_sympy_exp(ret, sb))
 		ans_sp = sp.expand(expr1 - expr2);
 		
@@ -152,7 +152,7 @@ class PolynomialTest(unittest.TestCase):
 		expr1 = 0.4*sb[1]*sb[3]+5*sb[1]*sb[2]+0.86*sb[3]**2
 		expr2 = 1.5+0.01*sb[1]+0.6*sb[2]
 
-		ret = _solver.substitute(var, poly2, poly1)
+		ret = _sewup.substitute(var, poly2, poly1)
 		ans_poly = sp.expand(self.make_sympy_exp(ret, sb))
 		ans_sp = sp.expand(expr1.subs(sb[var], expr2))
 
@@ -160,7 +160,7 @@ class PolynomialTest(unittest.TestCase):
 
 		expr1 = 0.4*sb[1]*sb[3]+5*sb[1]*sb[2]+0.86*sb[3]**2
 
-		ret = _solver.substitute(var, c, poly1)
+		ret = _sewup.substitute(var, c, poly1)
 		ans_poly = sp.expand(self.make_sympy_exp(ret, sb))
 		ans_sp = sp.expand(expr1.subs(sb[var], c))
 

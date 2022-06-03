@@ -8,7 +8,7 @@
 #include "player.hpp"
 
 Player::Player(size_t dim, size_t nvar)
-    : func_(dim), psol_(dim), hessian_(nvar, nvar) {}
+    : sol_(0), func_(dim), psol_(dim), hessian_(nvar, nvar) {}
 
 Player::Player(Player const& other)
     : var_(other.var_), sol_(other.sol_), dfness_(other.dfness_), func_(other.func_), psol_(other.psol_), hessian_(other.hessian_), first_derivs_(other.first_derivs_) {}
@@ -62,12 +62,12 @@ bool Player::is_valid(Ftype const& ftype, size_t var_s, size_t var_e, Role role)
 void Player::calc_hessian_mat(size_t var_s, size_t var_e, Role role)
 {
     Polynomial* ptr;
-    if(role == leader) ptr = &psol();
+    if(role == Role::leader) ptr = &psol();
     else ptr = &func();
     
     for(size_t i=var_s; i<=var_e; ++i){
         if(first_derivs_.find(i) == first_derivs_.end()){
-            first_derivs_.at(i) = ptr->first_deriv(i);
+            first_derivs_.insert({i, ptr->first_deriv(i)});
         }
         Polynomial tmp = first_derivs_.at(i);
         for(size_t j=var_s; j<=var_e; ++j){

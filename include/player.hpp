@@ -15,7 +15,7 @@
 #include "matrix.hpp"
 
 typedef enum { utility, cost } Ftype;
-typedef enum { follower, leader } Role;
+enum class Role { follower, leader };
 
 class Player{
 public:
@@ -40,7 +40,7 @@ public:
     Polynomial const& first_deriv(size_t var) const { return first_derivs_.at(var); }
     Polynomial& first_deriv(size_t var) { return first_derivs_.at(var); }
     bool is_valid(Ftype const& ftype, size_t var_s, size_t var_e, Role role);
-    
+
 private:
     void calc_hessian_mat(size_t var_s, size_t var_e, Role role);
     void hessian_mat_dfness();

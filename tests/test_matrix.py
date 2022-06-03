@@ -4,26 +4,26 @@ import numpy as np
 import unittest
 import math
 
-import _solver
+import _sewup
 
 class MatrixTest(unittest.TestCase):
 	def make_matrix(self, size):
 		rand_list = np.random.rand(size, size);
-		mat = _solver.Matrix(size, size, rand_list.flatten())
+		mat = _sewup.Matrix(size, size, rand_list.flatten())
 		return mat, rand_list;
 
 	def make_matrix_arr(self, size, arr):
-		mat = _solver.Matrix(size, size, arr.flatten())
+		mat = _sewup.Matrix(size, size, arr.flatten())
 		return mat;
 
 	def test_multiplication(self):
-		size = 1000
+		size = 100
 		tsize = 16
 		mat1, rl1  = self.make_matrix(size)
 		mat2, rl2 = self.make_matrix(size)
 
-		naive = _solver.multiply_naive(mat1, mat2)
-		tile = _solver.multiply_tile(mat1, mat2, tsize)
+		naive = _sewup.multiply_naive(mat1, mat2)
+		tile = _sewup.multiply_tile(mat1, mat2, tsize)
 		
 		self.assertEqual(naive, tile)
 
@@ -49,8 +49,8 @@ class MatrixTest(unittest.TestCase):
 		dfness1 = np.all(np.linalg.eigvals(rl1) > 0) # positive dfness
 		dfness2 = np.all(np.linalg.eigvals(rl2) < 0) # negative dfness
 
-		self.assertEqual(dfness1, mat1.dfness(_solver.positive))
-		self.assertEqual(dfness2, mat2.dfness(_solver.negative))
+		self.assertEqual(dfness1, mat1.dfness(_sewup.positive))
+		self.assertEqual(dfness2, mat2.dfness(_sewup.negative))
 
 if __name__ == '__main__':
 	unittest.main()

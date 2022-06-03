@@ -218,12 +218,15 @@ void Polynomial::analyze_tokens(std::vector<std::string>& tokens)
 Polynomial Polynomial::first_deriv(size_t const& var)
 {
     Polynomial p(dim_);
+    
     for(size_t i=0; i<var; ++i){
         p(0, i) += (*this)(var, i);
     }
+    
     for(size_t i=var+1; i<dim_; ++i){
         p(0, i) += (*this)(i, var);
     }
+    
     p(0, var) = 2*(*this)(var, var);
     
     return p;
@@ -322,7 +325,7 @@ Polynomial substitute(size_t const& var, double const& src, Polynomial const& ta
     for(size_t i=var+1; i<n; ++i){
         double v = target(var, i);
         if(v != 0){
-            dup(i, var) = 0;
+            dup(var, i) = 0;
             ret(0, i) += v;
         }
     }
