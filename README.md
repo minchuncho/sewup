@@ -56,48 +56,72 @@ solver.show_ans()
 
 ## API Description
 ### Solver Initialization
-A solver is in demand for a set of followers and leaders.
+A solver is required for a set of followers and leaders.
 ```python
 Solver(nf, nl, f_ftype, l_ftype)
 ```
+#### Arguments
 - `nf`: number of followers (`uint32`)
 - `nl`: number of leaders (`uint32`)
 - `f_ftype`: the function type for followers, either `_sewup.cost` or `_sewup.utility` (`Ftype`)
 - `l_ftype`: the function type for leaders, either `_sewup.cost` or `_sewup.utility` (`Ftype`)
 
-Note that `enum Ftype` is used to specify leader's and follower's mathematic functions are "utility" or "cost," respectively. This is important because we need the information to judge it is a maximum or a minimum that we are looking for.
+#### Note
+`enum Ftype` is used to specify leader's and follower's mathematic functions are "utility" or "cost," respectively. This is important because we need the information to judge it is a maximum or a minimum that we are looking for.
 
-### Set leader and follower mathematic function
-The order of variables are `x0`, `x1`, ..., `x[nf]` for followers and `x[nf+1]`, ..., `x[nf+nl]` for leaders.
+### Set leader mathematic function
+```python
+solver.set_leader(i, func_str)
+```
+
+#### Arguments
+- `i`: the index of leader starting from 0 (`uint32`)
+- `func_str`: string for the desired mathematic function (`string`)
+  - Variable is recognized as `x1 x2 x3 ...` instead of `x_1 x_2 x_3 ...` or other forms.
+  - When multiplying one variable with another, `x1x2` is valid and `x1*x2` is **not**. That is, no "\*" between variables.
+    - `x1x1` stands for the sqaure of `x1` while `x1^2` is **not recognizable**.
+  - When multiplying one variable with a constant, "\*" is **required**. For example, `1*x1x4`.
+    - **A constant must be specified** even though it is just 1.
+  - A term more than two variables such as `x1x3x4` or `x1x1x2` is **not allowed**.
+  - A term with variables in a fraction form such as `x1/x3` is **not allowed**.
+
+#### Note
+Suppose there are `nf` followers and `nl` leaders and the use of variables is listed below:
+
+| Follower | Leader |
+| --- | --- |
+| `x1`, ..., `x[nf]` | `x[nf+1]`, ..., `x[nf+nl]`  |
 
 For instance, if `nf=2` and `nl=3`, then the followers own the variable `x1` and `x2` and the leaders own the variables `x3`, `x4`, and `x5`.
 
+### Set follower mathematic function
 ```python
-solver.set_leader(i, func_str);
+solver.set_follower(i, func_str)
 ```
-- `i`: the index of leader starting from 0 (`uint32`)
+
+#### Arguments
+- `i`: the index of follower starting from 0 (`uint32`)
 - `func_str`: string for the desired mathematic function (`string`)
+  - Variable is recognized as `x1 x2 x3 ...` instead of `x_1 x_2 x_3 ...` or other forms.
+  - When multiplying one variable with another, `x1x2` is valid and `x1*x2` is **not**. That is, no "\*" between variables.
+    - `x1x1` stands for the sqaure of `x1` while `x1^2` is **not recognizable**.
+  - When multiplying one variable with a constant, "\*" is **required**. For example, `1*x1x4`.
+    - **A constant must be specified** even though it is just 1.
+  - A term more than two variables such as `x1x3x4` or `x1x1x2` is **not allowed**.
+  - A term with variables in a fraction form such as `x1/x3` is **not allowed**.
 
-**>> IMPORTANT <<**
-
-As mentioned previously, math functions must be in a special form so the rule is described below:
-- Variable is recognized as `x1 x2 x3 ...` instead of `x_1 x_2 x_3 ...` or other forms.
-- When multiplying one variable with another, `x1x2` is valid and `x1*x2` is **not**. That is, no "\*" between variables.
-  - `x1x1` stands for the sqaure of `x1` while `x1^2` is **not recognizable**.
-- When multiplying one variable with a constant, "\*" is **required**. For example, `1*x1x4`.
-  - **A constant must be specified** even though it is just 1.
-- A term more than two variables such as `x1x3x4` or `x1x1x2` is **not allowed**.
-- A term with variables in a fraction form such as `x1/x3` is **not allowed**.
-
-As for `set_follower(i, func_str)`, it works the same way as `set_leader(i, func_str)`.
+#### Note
+Basically, this API works the same way as `solver.set_leader(i, func_str)` does.
 
 ### Start Solving the Problem
-After the previous steps are all set, call the following functions **in order** to evoke the process of solving equations.
 ```python
 solver.solve_followers()
 solver.solve_leaders()
 ```
-The following are the error messages you might receive:
+
+#### Notes
+After the previous steps are all set, call the following functions **in order** to evoke the process of solving equations.
+The error messages you might receive are as follows:
 - Some follower's hessian matrix with respect to all followers' variables are not concave or convex (corresponding to `_sewup.utility` or `_sewup.cost`)
 - Some leader's hessian matrix with respect to all leaders' variables are not concave or convex (corresponding to `_sewup.utility` or `_sewup.cost`)
 - There are no solution to the problem.
@@ -105,10 +129,13 @@ The following are the error messages you might receive:
 If you finish without receiving any exception, the solver has gotten the answer (NE) in hand.
 
 ### Check the Answer
-This API simply prints out the NE.
 ```python
 solver.show_ans()
 ```
+
+#### Note
+This API simply prints out the NE.
+
 Or you can use the following APIs to check the answer by `np.array`.
 ```python
 fsols = solver.fsols        # followers' solution kept in np.array
